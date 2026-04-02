@@ -2,6 +2,7 @@
 import { OAuth2Client, type GenerateAuthUrlOpts } from "google-auth-library";
 import { auth_google } from "../auth.service.js";
 import dotenv from "dotenv"
+import type { JwtPayload } from "jsonwebtoken";
 
 //* config 
 dotenv.config()
@@ -17,4 +18,12 @@ export const url: string = client.generateAuthUrl({
     access_type: "offline",
     scope: ["profile", "email"]
 })
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: string | JwtPayload
+        }
+    }
+}
 

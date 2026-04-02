@@ -1,9 +1,9 @@
-import type { ButtonInterface } from "../types/types.types"
+import type { ButtonInterface } from "../types/Types.types"
 
 const Button = (props: ButtonInterface) => {
     const {children, onClick} = props   
     return (
-        <button onClick={() => onClick()}>{children}</button>
+        <button onClick={() => onClick()} className="cursor-pointer">{children}</button>
     )
 }
 export default Button
