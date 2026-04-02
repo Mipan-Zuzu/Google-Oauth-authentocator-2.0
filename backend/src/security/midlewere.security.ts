@@ -1,8 +1,11 @@
 //* third party
 import type { Response, Request, NextFunction } from "express"
+import jwt from "jsonwebtoken"
 //* local
 import { ping } from "../service/auth.service.js"
 import { client } from "../service/auth/google.js"
+
+//* config
 
 export const midlewere_auth_google = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try{
@@ -22,11 +25,20 @@ export const midlewere_auth_google = async (req: Request, res: Response, next: N
 
 export const midlewere_google_login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try{
+        const token = req.query.code as string
+        if(!token) {
+            res.status(401).json({data: "Anauthorize token", status: 401})
+            return
+        }
         next()
     }catch (error) {
         if(error instanceof Error) {
-            res.status(500).json({data: error.message, status: 500})
+            res.status(500).json({data: `${error.message}suki`, status: 500})
             return
         }
     }
+}
+
+export const midlewere_checking_login = async (req, res) => {
+    
 }
