@@ -2,11 +2,13 @@
 import dotenv from "dotenv";
 import express, { Router } from "express";
 import cors from "cors"
+import cookieParser from "cookie-parser";
 //local
 import { routes } from "./routes/routes.route.js";
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser())
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
