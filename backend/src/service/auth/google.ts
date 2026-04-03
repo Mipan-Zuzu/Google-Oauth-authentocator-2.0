@@ -22,8 +22,8 @@ export const url: string = client.generateAuthUrl({
 declare global {
     namespace Express {
         interface Request {
-            user?: string | JwtPayload
+            user?: string | JwtPayload,
+            token?: string
         }
     }
 }
-

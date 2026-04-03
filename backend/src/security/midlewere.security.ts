@@ -39,6 +39,16 @@ export const midlewere_google_login = async (req: Request, res: Response, next: 
     }
 }
 
-export const midlewere_checking_login = async (req, res) => {
-    
+export const midlewere_checking_login = async (req: Request, res: Response, next: NextFunction) => {
+    try{
+        const user = req.user
+        if(!user) {
+            res.status(401).json({data: "emty data user", status: 401})
+        }
+        next()
+    } catch (error) {
+        if(error instanceof Error) {
+            res.status(500).json({data: error.message, status: 500})
+        }
+    }
 }

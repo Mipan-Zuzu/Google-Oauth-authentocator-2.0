@@ -6,12 +6,17 @@ import dotenv from "dotenv"
 
 //* local
 import { url } from "./auth/google.js"
-import { log } from "node:console"
-dotenv.config()
+import type { myCookie, tokenAuth } from "../types/main.type.js"
+import { client } from "./auth/google.js"
+import { verify } from "node:crypto"
 
 //* config
-const KEY_TOKEN_JWT = process.env.KEY_TOKEN_JWT
+dotenv.config()
+const KEY_TOKEN_JWT = process.env.KEY_TOKEN_JWT!
 const URL_FRONTEND = process.env.DASHBOARD_URL
+const ID_CLIENT =  process.env.AUTH_GOOGLE_ID_CLIENT as string
+
+const log = console.log
 //* service
 export const auth_google = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -49,6 +54,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     })
     if(!token) {
         res.status(404).json({data: "token invalid", status: 404})
+        return
     }
     
     log(token_code)
@@ -66,12 +72,37 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 
     // const decode = jwt.verify(token_code, KEY_TOKEN_JWT)
     // req.user = decode
-    res.json({data: token_code, status: 200})
+    req.user = token_code
+    res.redirect(URL_FRONTEND)
 }
 
-export const checking = (req: Request, res: Response): void => {
-    const decode = req.user
-    log(decode)
+export const checking = async (req: Request, res: Response): Promise<void> => {
+    const log = console.log
+    const {token} = req.cookies as myCookie
+    if(!token) {
+        res.status(404).json({data: "invalid cookie", status: 404})
+        return
+    }
+    if(!KEY_TOKEN_JWT) {
+        res.status(401).json({data: "Anauthorize token", status: 401})
+        return
+    }
+    
+    const decode = jwt.verify(token, KEY_TOKEN_JWT, {
+        maxAge: "1h"
+    }) as tokenAuth
+
+    if(decode.token !== req.token) {
+        res.status(401).json({data: "invalid Authorization token", status: 401})
+        return
+    }
+
+    const verifying = await client.verifyIdToken({
+        idToken: decode.token as string,
+        audience: ID_CLIENT
+    })
+
+    res.json({data: verifying, status: "berhasil"})
 }
 
 export const ping = (req: Request, res: Response): void => {

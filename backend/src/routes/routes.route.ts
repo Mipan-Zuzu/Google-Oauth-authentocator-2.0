@@ -18,7 +18,7 @@ routes.get("/auth/google/login", (req: Request, res: Response): Promise<void> =>
 
 routes.get("/auth/google/callback", midlewere_google_login, (req: Request, res: Response): Promise<void> => auth_google_callback(req, res))
 
-routes.get("/auth/checking/token", (req: Request, res: Response): void => checking(req, res))
+routes.get("/auth/checking/token", (req: Request, res: Response): Promise<void> => checking(req, res))
 
 //* testing routes 
 routes.get("/ping", (req: Request, res: Response) => ping(req, res))
