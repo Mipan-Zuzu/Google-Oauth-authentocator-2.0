@@ -1,33 +1,39 @@
 import axios from "axios"
-// import { useNavigate } from "react-router-dom"
-// import type { props } from "../types/Types.types"
-import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import type { props } from "../types/Types.types"
+import { useEffect, useState } from "react"
 
-// {children}: props
-const MidlewereSecurity = () => {
+const MidlewereSecurity = ({children}: props) => {
     const URL_BACKEND_TOKEN = import.meta.env.VITE_URL_BACKEND_TOKEN
+    const navigate = useNavigate()
     const log = console.log
     const [errors, setErrors] = useState<string>()
-       const checkingData =  async() => {
+    useEffect(() => {
+         const checkingData =  async() => {
          try {
         const res = await axios.get(URL_BACKEND_TOKEN, {
             withCredentials: true
         })
-        const token = res.data
-        console.log(!token? "suki" : token)
-        log(URL_BACKEND_TOKEN)
+        if(!res.data){
+            alert(errors)
+            navigate("/")
+            return
+        }
+        console.log(res.data)
     }catch (error) {
         if(error instanceof Error) {
             setTimeout(() => {
                 setErrors(error.message)
+                navigate("/")
             }, 0);
         }
     }
-       }
-       checkingData()
-    
+}
+checkingData()
+}, [URL_BACKEND_TOKEN, log, errors, navigate, children])
 
-    
-    return <h1>{ !errors? "succses" : errors }</h1>
+
+return children
+
 }
 export default MidlewereSecurity
