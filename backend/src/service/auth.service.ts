@@ -7,8 +7,8 @@ import dotenv from "dotenv"
 //* local
 import { url } from "./auth/google.js"
 import type { myCookie, tokenAuth } from "../types/main.type.js"
+import { OAuth2Client } from "google-auth-library"
 import { client } from "./auth/google.js"
-import { verify } from "node:crypto"
 
 //* config
 dotenv.config()
@@ -35,6 +35,7 @@ export const auth_google = async (req: Request, res: Response): Promise<void> =>
 
 export const auth_google_callback = async (req: Request, res: Response): Promise<void> => {
     const token_code = req.query.code as string
+    log(`token from callback : ${token_code}`)
 
     if(!token_code || typeof token_code !== "string") {
         res.status(401).json({data: "AnAuthorize token code", status: 401})
@@ -50,7 +51,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         token: token_code
     }
     const token = jwt.sign(payload, KEY_TOKEN_JWT, {
-        expiresIn: 60 * 60 * 60
+        expiresIn: 60 * 60 * 1000
     })
     if(!token) {
         res.status(404).json({data: "token invalid", status: 404})
@@ -64,7 +65,6 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     }
 
     res.cookie("token", token, {
-        sameSite: "lax",
         httpOnly: true,
         // secure: true,
         maxAge: 60 * 60
@@ -79,31 +79,48 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 export const checking = async (req: Request, res: Response): Promise<void> => {
     const log = console.log
     const {token} = req.cookies as myCookie
-    if(!token) {
-        res.status(404).json({data: "invalid cookie", status: 404})
+    
+    try {
+        if(!KEY_TOKEN_JWT) {
+        res.status(401).json({data: "AnAuthorize", status : 401})
         return
     }
-    if(!KEY_TOKEN_JWT) {
-        res.status(401).json({data: "Anauthorize token", status: 401})
+    if(!token) {
+        res.status(401).json({data: "invalid token", status : 401})
         return
     }
     
     const decode = jwt.verify(token, KEY_TOKEN_JWT, {
         maxAge: "1h"
     }) as tokenAuth
-
-    if(decode.token !== req.token) {
-        res.status(401).json({data: "invalid Authorization token", status: 401})
+    const {tokens} = await client.getToken(decode.token as string)
+    
+    if(!tokens) {
+        res.status(404).json({data: "cannot get user data", status : 404})
         return
     }
 
-    const verifying = await client.verifyIdToken({
-        idToken: decode.token as string,
+    const ticket = await client.verifyIdToken({
+        idToken: tokens.id_token as string,
         audience: ID_CLIENT
     })
 
-    res.json({data: verifying, status: "berhasil"})
+    if(!ticket) {
+        res.status(401).json({data: "failed to verify User", status : 401})
+        return
+    }
+
+    const ticket_payload = await ticket.getPayload()
+    log(ticket_payload)
+    res.status(200).json({data: ticket_payload?.picture, status: 200})
+
+    } catch (error) {
+    if(error instanceof Error) {
+        res.status(500).json({data: error.message, status: 500})
+        return
+    }
 }
+} 
 
 export const ping = (req: Request, res: Response): void => {
     res.json("PONG")

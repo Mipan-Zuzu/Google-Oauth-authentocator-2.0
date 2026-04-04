@@ -7,7 +7,6 @@ import type { JwtPayload } from "jsonwebtoken";
 //* config 
 dotenv.config()
 
-const log = console.log
 export const client: OAuth2Client = new OAuth2Client(
     process.env.AUTH_GOOGLE_ID_CLIENT,
     process.env.AUTH_GOOGLE_CLIENT_SECRET,
