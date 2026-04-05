@@ -1,5 +1,5 @@
 //* third party
-import type { Response, Request } from "express"
+import { type Response, type Request, request, response } from "express"
 import jwt from "jsonwebtoken"
 import cookieParser from "cookie-parser"
 import dotenv from "dotenv"
@@ -9,6 +9,7 @@ import { url } from "./auth/google.js"
 import type { myCookie, tokenAuth } from "../types/main.type.js"
 import { OAuth2Client } from "google-auth-library"
 import { client } from "./auth/google.js"
+import { asyncHanlder } from "../utils/asyncHandler.js"
 
 //* config
 dotenv.config()
@@ -18,20 +19,14 @@ const ID_CLIENT =  process.env.AUTH_GOOGLE_ID_CLIENT as string
 
 const log = console.log
 //* service
-export const auth_google = async (req: Request, res: Response): Promise<void> => {
-    try {
+
+export const auth_google = asyncHanlder(async (req: Request, res: Response): Promise<void> => {
         if(!url) {
             res.status(404).json({data: "Cannot accses url", status: 404})
             return
         }
         res.status(201).json({data: url , status: 201})
-    }catch (error) {
-        if(error instanceof Error) {
-            res.status(500).json({data: error.message, status: 500})
-            return
-        }
-    }
-}
+})
 
 export const auth_google_callback = async (req: Request, res: Response): Promise<void> => {
     const token_code = req.query.code as string
