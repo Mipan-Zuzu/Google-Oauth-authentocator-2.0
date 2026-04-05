@@ -3,6 +3,7 @@ import expres from "express"
 import type {NextFunction, Request, Response, Router} from "express"
 
 //* service
+import { asyncHanlder } from "../utils/asyncHandler.js"
 import { auth_google, auth_google_callback, checking, ping } from "../service/auth.service.js"
 //* midlewere
 import {
@@ -16,9 +17,12 @@ export const routes: Router = expres.Router()
 //* route auth
 routes.get("/auth/google/login", async(req: Request, res: Response, next: NextFunction): Promise<void> => auth_google(req, res, next))
 
-routes.get("/auth/google/callback", midlewere_google_login, (req: Request, res: Response): Promise<void> => auth_google_callback(req, res))
+routes.get("/auth/google/callback", 
+    midlewere_google_login,
+    asyncHanlder(async(req: Request, res: Response): Promise<void> => auth_google_callback(req, res)))
 
-routes.get("/auth/checking/token", (req: Request, res: Response): Promise<void> => checking(req, res))
+routes.get("/auth/checking/token", 
+    asyncHanlder(async (req: Request, res: Response): Promise<void> => checking(req, res)))
 
 //* testing routes 
 routes.get("/ping", (req: Request, res: Response) => ping(req, res))
