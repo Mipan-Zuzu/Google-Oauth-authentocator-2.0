@@ -15,12 +15,18 @@ app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
 }))
+
+export const errRes = (req: Request, res: Response, next: NextFunction, status: number, error: string): void => {
+  let message = "internal server Error"
+  message = error
+  res.status(status).json({data: message, status: status})
+}
+
 const port: number = 3000;
 app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
   log(error)
-  let message = "internal server error"
-  if(error instanceof Error) message = error.message
-  res.status(500).json({data: message, status: 500})
+  const status = 500
+  if(error instanceof Error) errRes(req, res, next,status, error.message)
 })
 
 
