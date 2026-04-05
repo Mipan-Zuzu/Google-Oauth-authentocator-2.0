@@ -1,6 +1,6 @@
 //* third party
 import expres from "express"
-import type {Request, Response, Router} from "express"
+import type {NextFunction, Request, Response, Router} from "express"
 
 //* service
 import { auth_google, auth_google_callback, checking, ping } from "../service/auth.service.js"
@@ -14,7 +14,7 @@ import {
 export const routes: Router = expres.Router()
 
 //* route auth
-routes.get("/auth/google/login", (req: Request, res: Response): Promise<void> => auth_google(req, res))
+routes.get("/auth/google/login", async(req: Request, res: Response, next: NextFunction): Promise<void> => auth_google(req, res, next))
 
 routes.get("/auth/google/callback", midlewere_google_login, (req: Request, res: Response): Promise<void> => auth_google_callback(req, res))
 
