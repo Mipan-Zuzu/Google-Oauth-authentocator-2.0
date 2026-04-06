@@ -4,6 +4,7 @@ import express, { Router} from "express";
 import type { Response, Request, NextFunction } from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser";
+
 //local
 import { routes } from "./routes/routes.route.js";
 const log = console.log
