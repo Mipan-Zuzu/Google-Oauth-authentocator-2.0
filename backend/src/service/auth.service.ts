@@ -11,6 +11,7 @@ import type { myCookie, tokenAuth } from "../types/main.type.js"
 import { OAuth2Client } from "google-auth-library"
 import { client } from "./auth/google.js"
 import { asyncHanlder } from "../utils/asyncHandler.js"
+import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client.js"
 
 //* config
 dotenv.config()
@@ -63,7 +64,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     res.cookie("token", token, {
         httpOnly: true,
         // secure: true,
-        maxAge: 60 * 60
+        maxAge: 60 * 60 * 1000
     })
 
     // const decode = jwt.verify(token_code, KEY_TOKEN_JWT)
@@ -76,48 +77,44 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
     const log = console.log
     const {token} = req.cookies as myCookie
     
-    try {
-        if(!KEY_TOKEN_JWT) {
-        res.status(401).json({data: "AnAuthorize", status : 401})
-        return
-    }
-    if(!token) {
-        res.status(401).json({data: "invalid token", status : 401})
-        return
-    }
+    //     if(!KEY_TOKEN_JWT) {
+    //     res.status(401).json({data: "AnAuthorize", status : 401})
+    //     return
+    // }
+    // if(!token) {
+    //     res.status(401).json({data: "invalid token", status : 401})
+    //     return
+    // }
     
     const decode = jwt.verify(token, KEY_TOKEN_JWT, {
         maxAge: "1h"
     }) as tokenAuth
     const {tokens} = await client.getToken(decode.token as string)
     
-    if(!tokens) {
-        res.status(404).json({data: "cannot get user data", status : 404})
-        return
-    }
+    // if(!tokens) {
+    //     res.status(404).json({data: "cannot get user data", status : 404})
+    //     return
+    // }
 
     const ticket = await client.verifyIdToken({
         idToken: tokens.id_token as string,
         audience: ID_CLIENT
     })
 
-    if(!ticket) {
-        res.status(401).json({data: "failed to verify User", status : 401})
-        return
-    }
+    // if(!ticket) {
+    //     res.status(401).json({data: "failed to verify User", status : 401})
+    //     return
+    // }
+
+    res.cookie("token_access", tokens.access_token, {
+        httpOnly: true,
+        maxAge : 60* 60 * 1000
+    })
 
     const ticket_payload = await ticket.getPayload()
     log(ticket_payload)
-    res.status(200).json({data: ticket_payload?.picture, status: 200})
-
-    } catch (error) {
-    if(error instanceof Error) {
-        res.status(500).json({data: error.message, status: 500})
-        return
-    }
-
 }
-} 
+
 
 export const ping = (req: Request, res: Response): void => {
     res.json("PONG")
