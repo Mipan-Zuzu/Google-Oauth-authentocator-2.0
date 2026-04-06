@@ -15,7 +15,7 @@ import {
 export const routes: Router = expres.Router()
 
 //* route auth
-routes.get("/auth/google/login", async(req: Request, res: Response, next: NextFunction): Promise<void> => auth_google(req, res, next))
+routes.get("/auth/google/login", asyncHanlder(async(req: Request, res: Response): Promise<void> => auth_google(req, res)))
 
 routes.get("/auth/google/callback", 
     midlewere_google_login,
