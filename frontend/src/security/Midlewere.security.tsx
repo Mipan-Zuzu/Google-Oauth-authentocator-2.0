@@ -14,17 +14,17 @@ const MidlewereSecurity = ({children}: props) => {
         const res = await axios.get(URL_BACKEND_TOKEN, {
             withCredentials: true
         })
+        log(res.data)
         if(!res.data){
             alert(errors)
-            navigate("/")
             return
+            console.log(res.data)
         }
-        console.log(res.data)
     }catch (error) {
         if(error instanceof Error) {
             setTimeout(() => {
                 setErrors(error.message)
-                navigate("/")
+                return
             }, 0);
         }
     }

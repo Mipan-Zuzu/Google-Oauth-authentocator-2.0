@@ -22,7 +22,7 @@ routes.get("/auth/google/callback",
     asyncHanlder(async(req: Request, res: Response): Promise<void> => auth_google_callback(req, res)))
 
 routes.get("/auth/checking/token", 
-    asyncHanlder(async (req: Request, res: Response): Promise<void> => checking(req, res)))
+   async (req: Request, res: Response): Promise<void> => checking(req, res))
 
 //* testing routes 
 routes.get("/ping", (req: Request, res: Response) => ping(req, res))
