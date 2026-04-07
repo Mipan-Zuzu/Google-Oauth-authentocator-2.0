@@ -1,4 +1,4 @@
-import GoogleLoginComponents from "../components/Google_login.components";
+import GoogleLoginComponents from "../components/Google_login.components.tsx";
 
 const Login = () => {
   return (
