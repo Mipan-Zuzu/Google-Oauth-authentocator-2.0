@@ -23,7 +23,6 @@ export const errRes = (req: Request, res: Response, next: NextFunction, status: 
   res.status(status).json({data: message, status: status})
 }
 
-const port: number = 3000;
 app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
   log(error)
   const status = 500
@@ -34,6 +33,8 @@ app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
 dotenv.config();
 const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
 const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
+
+const port =  process.env.PORT || 3000
 
 try {
   app.use(routes)
