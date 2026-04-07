@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './pages/Login.pages'
+import Login from './pages/Login.pages'
 import Dashboard from './pages/Dashboard.pages'
 import MidlewereSecurity from './security/Midlewere.security'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
@@ -9,7 +9,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 const Router = createBrowserRouter([
   {
     path: "/",
-    element: <App />
+    element: <Login />
   },
   {
     path: "/dashboard",
