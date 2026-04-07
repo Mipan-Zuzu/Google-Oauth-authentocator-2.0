@@ -1,4 +1,4 @@
-import type { ButtonInterface } from "../types/Types.types.ts"
+import type { ButtonInterface } from "../types/Types.types"
 
 const Button = (props: ButtonInterface) => {
     const {children, onClick} = props   

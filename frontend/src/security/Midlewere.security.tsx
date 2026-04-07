@@ -1,6 +1,6 @@
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
-import type { props } from "../types/Types.types.ts"
+import type { props } from "../types/Types.types"
 import { useEffect, useState } from "react"
 
 const MidlewereSecurity = ({children}: props) => {
