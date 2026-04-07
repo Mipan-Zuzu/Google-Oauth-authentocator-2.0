@@ -1,5 +1,5 @@
 
-const Dashboard = (data: string) => {
+const Dashboard = () => {
     return (
         <div>
             <h1>Ini Dashboard</h1>
