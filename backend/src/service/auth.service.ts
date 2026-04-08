@@ -94,7 +94,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         return
     }
 
-        const parses_token = JSON.parse(token)
+        const parses_token = typeof token === 'string' ? JSON.parse(token) : token
         log(`token ${token}`)
         
         const ticket = await client.verifyIdToken({
