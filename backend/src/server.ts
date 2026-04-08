@@ -15,13 +15,16 @@ if(!FRONTEND_URL) {
   throw new Error("cannot find frontend url")
 }
 
+console.log(FRONTEND_URL)
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser())
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: process.env.FRONTEND_URL || "https://oauth.mipandev.my.id",
   credentials: true
 }))
+
 
 export const errRes = (req: Request, res: Response, next: NextFunction, status: number, error: string): void => {
   let message = "internal server Error"
