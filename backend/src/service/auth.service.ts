@@ -47,6 +47,9 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     const payload: {token: string} = {
         token: token_code
     }
+
+    log(payload)
+
     const token = jwt.sign(payload, KEY_TOKEN_JWT, {
         expiresIn: 60 * 60 * 1000
     })
@@ -63,7 +66,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 
     res.cookie("token", token, {
         httpOnly: true,
-        // secure: true,
+        secure: true,
         maxAge: 60 * 60 * 1000
     })
 
@@ -108,6 +111,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
     res.cookie("token_access", tokens.access_token, {
         httpOnly: true,
+        secure: true,
         maxAge : 60* 60 * 1000
     })
 
