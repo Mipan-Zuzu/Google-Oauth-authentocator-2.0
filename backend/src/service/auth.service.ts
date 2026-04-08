@@ -66,11 +66,13 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     }
 
     const {tokens} = await client.getToken(token_code as string)
+
+    console.log(tokens)
     
-    res.cookie("token", JSON.stringify(tokens), {
+    res.cookie("token", tokens, {
         httpOnly: true,
         secure: true,
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: 60 * 60 * 1000
     })
     
@@ -92,7 +94,6 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         return
     }
 
-    try {
         const parses_token = JSON.parse(token)
         log(`token ${token}`)
         
@@ -106,20 +107,21 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
             return
         }
 
-        const accses_token: string = parses_token.accses_token
-        if(!accses_token) {
+        const accses_token_parses = parses_token.access_token
+        log(accses_token_parses)
+        if(!accses_token_parses) {
             res.status(401).json({data: "anAuthorize accses token", status: 401})
             return
         }
 
-        const accses_token_sign = jwt.sign(accses_token, KEY_TOKEN_JWT, {
+        const accses_token_sign = jwt.sign(accses_token_parses, KEY_TOKEN_JWT, {
             expiresIn: 60 * 60 * 1000
         })
 
         res.cookie("token_access", accses_token_sign, {
             httpOnly: true,
             secure: true,
-            sameSite: "lax",
+            sameSite: "none",
             maxAge : 60* 60 * 1000
         })
 
@@ -134,14 +136,6 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
                 }
             ]
         })
-    } catch (error) {
-        if(error instanceof Error) {
-            log(`Error in checking: ${error.message}`)
-            res.status(401).json({data: error.message, status: 401})
-            return
-        }
-        res.status(500).json({data: "Server error", status: 500})
-    }
 }
 
 
