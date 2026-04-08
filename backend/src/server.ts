@@ -33,13 +33,12 @@ app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
 dotenv.config();
 const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
 const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
-
 const port =  process.env.PORT || 3000
 
 try {
   app.use(routes)
   app.listen(port, () => {
-  log(`succses listen server in port ${port}`)
+  log(`succses listen server in port ${port} anjayy`)
   })
 } catch (error) {
   if (error instanceof Error) {
