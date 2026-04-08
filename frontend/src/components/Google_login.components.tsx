@@ -19,7 +19,7 @@ const GoogleLoginComponents = () => {
     }
 
     return (
-        <div className="px-15 shadow-2xl p-3 rounded-lg hover:scale-110 duration-300">
+        <div className="px-15 shadow-2xl p-3 rounded-lg hover:scale-110 duration-300 bg-white">
             <div className="flex gap-4">
                 <GoogleIco />
                 <Button onClick={getData}>Login dengan Google</Button>
