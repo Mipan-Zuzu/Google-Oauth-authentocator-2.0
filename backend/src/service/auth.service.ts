@@ -68,6 +68,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        domain: ".mipandev.my.id",
         maxAge: 60 * 60 * 1000
     })
     
@@ -124,6 +125,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        domain: ".mipandev.my.id",
         maxAge : 60* 60 * 1000
     })
 
