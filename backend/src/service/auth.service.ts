@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken"
 import cookieParser from "cookie-parser"
 import dotenv from "dotenv"
 
-
 //* local
 import { url } from "./auth/google.js"
 import type { myCookie, tokenAuth } from "../types/main.type.js"
@@ -72,24 +71,24 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         maxAge: 60 * 60 * 1000
     })
     
-    // req.user = token_code
     res.redirect(URL_FRONTEND!)
 }
 
 export const checking = async (req: Request, res: Response): Promise<void> => {
     const log = console.log
     const {token} = req.cookies as myCookie
+    log(req.cookies)
     
     if(!KEY_TOKEN_JWT) {
         res.status(401).json({data: "AnAuthorize", status : 401})
         return
     }
 
-    if(!token) {
-        log("cannot find cookie")
-        res.redirect(URL_FRONTEND_LOGIN!)
-        return
-    }
+    // if(!token) {
+    //     log("cannot find cookie")
+    //     res.redirect(URL_FRONTEND_LOGIN!)
+    //     return
+    // }
     
     const decode = jwt.verify(token, KEY_TOKEN_JWT, {
         maxAge: "1h"
