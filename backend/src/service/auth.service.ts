@@ -11,6 +11,7 @@ import { OAuth2Client } from "google-auth-library"
 import { client } from "./auth/google.js"
 import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client.js"
 import { NONAME } from "node:dns"
+import { stringify } from "node:querystring"
 
 //* config
 dotenv.config()
@@ -63,8 +64,10 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         res.status(401).json({data: "unexpected type of url", status: 401})
         return
     }
+
+    const {tokens} = await client.getToken(token_code as string)
     
-    res.cookie("token", token, {
+    res.cookie("token", JSON.stringify(tokens), {
         httpOnly: true,
         secure: true,
         sameSite: "none",
@@ -78,6 +81,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 export const checking = async (req: Request, res: Response): Promise<void> => {
     const log = console.log
     const {token} = req.cookies as myCookie
+    const parses_token = JSON.parse(token)
     log(`token ${token}`)
     
     // if(!KEY_TOKEN_JWT) {
@@ -90,20 +94,9 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
     //     res.redirect(URL_FRONTEND_LOGIN!)
     //     return
     // }
-    
-    const decode = jwt.verify(token, KEY_TOKEN_JWT, {
-        maxAge: "1h"
-    }) as tokenAuth
-
-    const {tokens} = await client.getToken(decode.token as string)
-    
-    // if(!tokens) {
-    //     res.status(404).json({data: "cannot get user data", status : 404})
-    //     return
-    // }
 
     const ticket = await client.verifyIdToken({
-        idToken: tokens.id_token as string,
+        idToken: parses_token.id_token,
         audience: ID_CLIENT
     })
 
@@ -112,11 +105,11 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
     //     return
     // }
 
-    if(!tokens.access_token) {
+    if(!token) {
         res.status(401).json({data: "anAuthorize accses token"})
         return
     }
-    const accses_token: string = tokens.access_token
+    const accses_token: string = parses_token.accses_token
     const accses_token_sign = jwt.sign(accses_token, KEY_TOKEN_JWT, {
         expiresIn: 60 * 60 * 1000
     })
@@ -135,7 +128,6 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         data: [
             {
                 token: token,
-                decode: decode,
                 signJwt: accses_token_sign,
                 ticket: ticket_payload
             }
