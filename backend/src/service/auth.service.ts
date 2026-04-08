@@ -58,7 +58,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         return
     }
     
-    log(token_code)
+    log(token)
     if(!URL_FRONTEND) { 
         res.status(401).json({data: "unexpected type of url", status: 401})
         return
