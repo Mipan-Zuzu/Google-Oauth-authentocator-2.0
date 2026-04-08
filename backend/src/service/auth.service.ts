@@ -81,58 +81,69 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 export const checking = async (req: Request, res: Response): Promise<void> => {
     const log = console.log
     const {token} = req.cookies as myCookie
-    const parses_token = JSON.parse(token)
-    log(`token ${token}`)
     
-    // if(!KEY_TOKEN_JWT) {
-    //     res.status(401).json({data: "AnAuthorize", status : 401})
-    //     return
-    // }
-
-    // if(!token) {
-    //     log("cannot find cookie")
-    //     res.redirect(URL_FRONTEND_LOGIN!)
-    //     return
-    // }
-
-    const ticket = await client.verifyIdToken({
-        idToken: parses_token.id_token,
-        audience: ID_CLIENT
-    })
-
-    // if(!ticket) {
-    //     res.status(401).json({data: "failed to verify User", status : 401})
-    //     return
-    // }
-
-    if(!token) {
-        res.status(401).json({data: "anAuthorize accses token"})
+    if(!KEY_TOKEN_JWT) {
+        res.status(401).json({data: "AnAuthorize", status : 401})
         return
     }
-    const accses_token: string = parses_token.accses_token
-    const accses_token_sign = jwt.sign(accses_token, KEY_TOKEN_JWT, {
-        expiresIn: 60 * 60 * 1000
-    })
 
-    res.cookie("token_access", accses_token_sign, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        domain: ".mipandev.my.id",
-        maxAge : 60* 60 * 1000
-    })
+    if(!token) {
+        log("cannot find cookie")
+        res.status(401).json({data: "Cookie token not found", status: 401})
+        return
+    }
 
-    const ticket_payload = await ticket.getPayload()
-    res.status(201).json({data: "succses", status: 201})
-    log({
-        data: [
-            {
-                token: token,
-                signJwt: accses_token_sign,
-                ticket: ticket_payload
-            }
-        ]
-    })
+    try {
+        const parses_token = JSON.parse(token)
+        log(`token ${token}`)
+        
+        const ticket = await client.verifyIdToken({
+            idToken: parses_token.id_token,
+            audience: ID_CLIENT
+        })
+
+        if(!ticket) {
+            res.status(401).json({data: "failed to verify User", status : 401})
+            return
+        }
+
+        const accses_token: string = parses_token.accses_token
+        if(!accses_token) {
+            res.status(401).json({data: "anAuthorize accses token", status: 401})
+            return
+        }
+
+        const accses_token_sign = jwt.sign(accses_token, KEY_TOKEN_JWT, {
+            expiresIn: 60 * 60 * 1000
+        })
+
+        res.cookie("token_access", accses_token_sign, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            domain: ".mipandev.my.id",
+            maxAge : 60* 60 * 1000
+        })
+
+        const ticket_payload = await ticket.getPayload()
+        res.status(201).json({data: "succses", status: 201})
+        log({
+            data: [
+                {
+                    token: token,
+                    signJwt: accses_token_sign,
+                    ticket: ticket_payload
+                }
+            ]
+        })
+    } catch (error) {
+        if(error instanceof Error) {
+            log(`Error in checking: ${error.message}`)
+            res.status(401).json({data: error.message, status: 401})
+            return
+        }
+        res.status(500).json({data: "Server error", status: 500})
+    }
 }
 
 
