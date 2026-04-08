@@ -69,7 +69,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 
     console.log(tokens)
     
-    res.cookie("token", tokens, {
+    res.cookie("token", JSON.stringify(tokens), {
         httpOnly: true,
         secure: true,
         sameSite: "none",
