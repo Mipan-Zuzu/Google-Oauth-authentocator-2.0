@@ -1,5 +1,6 @@
 //third party
 import dotenv from "dotenv";
+dotenv.config()
 import express, { Router} from "express";
 import type { Response, Request, NextFunction } from "express";
 import cors from "cors"
@@ -9,7 +10,6 @@ import cookieParser from "cookie-parser";
 import { routes } from "./routes/routes.route.js";
 const log = console.log
 
-dotenv.config();
 const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
 const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
 const port =  process.env.PORT || 3000
