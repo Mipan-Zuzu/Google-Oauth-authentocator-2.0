@@ -77,12 +77,12 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 export const checking = async (req: Request, res: Response): Promise<void> => {
     const log = console.log
     const {token} = req.cookies as myCookie
-    log(req.cookies)
+    log(`token ${token}`)
     
-    if(!KEY_TOKEN_JWT) {
-        res.status(401).json({data: "AnAuthorize", status : 401})
-        return
-    }
+    // if(!KEY_TOKEN_JWT) {
+    //     res.status(401).json({data: "AnAuthorize", status : 401})
+    //     return
+    // }
 
     // if(!token) {
     //     log("cannot find cookie")
@@ -96,20 +96,20 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
     const {tokens} = await client.getToken(decode.token as string)
     
-    if(!tokens) {
-        res.status(404).json({data: "cannot get user data", status : 404})
-        return
-    }
+    // if(!tokens) {
+    //     res.status(404).json({data: "cannot get user data", status : 404})
+    //     return
+    // }
 
     const ticket = await client.verifyIdToken({
         idToken: tokens.id_token as string,
         audience: ID_CLIENT
     })
 
-    if(!ticket) {
-        res.status(401).json({data: "failed to verify User", status : 401})
-        return
-    }
+    // if(!ticket) {
+    //     res.status(401).json({data: "failed to verify User", status : 401})
+    //     return
+    // }
 
     if(!tokens.access_token) {
         res.status(401).json({data: "anAuthorize accses token"})
