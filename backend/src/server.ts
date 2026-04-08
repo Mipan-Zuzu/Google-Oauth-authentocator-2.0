@@ -9,6 +9,12 @@ import cookieParser from "cookie-parser";
 import { routes } from "./routes/routes.route.js";
 const log = console.log
 
+const FRONTEND_URL = process.env.FRONTEND_URL
+
+if(!FRONTEND_URL) {
+  throw new Error("cannot find frontend url")
+}
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser())

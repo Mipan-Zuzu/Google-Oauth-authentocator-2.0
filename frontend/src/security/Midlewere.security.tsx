@@ -9,8 +9,8 @@ const MidlewereSecurity = ({children}: props) => {
     const log = console.log
     const [errors, setErrors] = useState<string>()
     useEffect(() => {
-         const checkingData =  async() => {
-         try {
+        const checkingData =  async() => {
+        try {
         const res = await axios.get(URL_BACKEND_TOKEN, {
             withCredentials: true
         })
@@ -31,9 +31,7 @@ const MidlewereSecurity = ({children}: props) => {
 }
 checkingData()
 }, [URL_BACKEND_TOKEN, log, errors, navigate, children])
-
-
-return children
-
+    return children
 }
+
 export default MidlewereSecurity
