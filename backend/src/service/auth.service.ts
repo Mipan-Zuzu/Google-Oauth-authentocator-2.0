@@ -114,7 +114,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
             return
         }
 
-        const accses_token_sign = jwt.sign(accses_token_parses, KEY_TOKEN_JWT, {
+        const accses_token_sign = jwt.sign({token: accses_token_parses}, KEY_TOKEN_JWT, {
             expiresIn: 60 * 60 * 1000
         })
 
