@@ -10,13 +10,14 @@ import { url } from "./auth/google.js"
 import type { myCookie, tokenAuth } from "../types/main.type.js"
 import { OAuth2Client } from "google-auth-library"
 import { client } from "./auth/google.js"
-import { asyncHanlder } from "../utils/asyncHandler.js"
 import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client.js"
+import { NONAME } from "node:dns"
 
 //* config
 dotenv.config()
 const KEY_TOKEN_JWT = process.env.KEY_TOKEN_JWT!
 const URL_FRONTEND = process.env.DASHBOARD_URL
+const URL_FRONTEND_LOGIN = process.env.FRONTEND_URL
 const ID_CLIENT =  process.env.AUTH_GOOGLE_ID_CLIENT as string
 
 const log = console.log
@@ -32,45 +33,45 @@ export const auth_google = async (req: Request, res: Response): Promise<void> =>
 
 export const auth_google_callback = async (req: Request, res: Response): Promise<void> => {
     const token_code = req.query.code as string
-    log(`token from callback : ${token_code}`)
-
+    
     if(!token_code || typeof token_code !== "string") {
         res.status(401).json({data: "AnAuthorize token code", status: 401})
         return
     }
-
+    
     if(!KEY_TOKEN_JWT) {
         res.status(401).json({data: "AnAuthorize token", status: 401})
         return
     }
-
+    
     const payload: {token: string} = {
         token: token_code
     }
-
-    log(payload)
-
+    
     const token = jwt.sign(payload, KEY_TOKEN_JWT, {
         expiresIn: 60 * 60 * 1000
     })
+
+    log(`token_code ${token_code}`)
+    log(`sign token jwt ${token}`)
+
     if(!token) {
         res.status(404).json({data: "token invalid", status: 404})
         return
     }
     
-    log(token)
-    // if(!URL_FRONTEND) { 
-    //     res.status(401).json({data: "unexpected type of url", status: 401})
-    //     return
-    // }
-
+    if(!URL_FRONTEND) { 
+        res.status(401).json({data: "unexpected type of url", status: 401})
+        return
+    }
+    
     res.cookie("token", token, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
         maxAge: 60 * 60 * 1000
     })
-
+    
     // req.user = token_code
     res.redirect(URL_FRONTEND!)
 }
@@ -83,14 +84,16 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         res.status(401).json({data: "AnAuthorize", status : 401})
         return
     }
+
     if(!token) {
-        res.status(401).json({data: "invalid token", status : 401})
-        return
+        log("cannot find cookie")
+        res.redirect(URL_FRONTEND_LOGIN!)
     }
     
     const decode = jwt.verify(token, KEY_TOKEN_JWT, {
         maxAge: "1h"
     }) as tokenAuth
+
     const {tokens} = await client.getToken(decode.token as string)
     
     if(!tokens) {
@@ -108,14 +111,34 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         return
     }
 
-    res.cookie("token_access", tokens.access_token, {
+    if(!tokens.access_token) {
+        res.status(401).json({data: "anAuthorize accses token"})
+        return
+    }
+    const accses_token: string = tokens.access_token
+    const accses_token_sign = jwt.sign(accses_token, KEY_TOKEN_JWT, {
+        expiresIn: 60 * 60 * 1000
+    })
+
+    res.cookie("token_access", accses_token_sign, {
         httpOnly: true,
         secure: true,
+        sameSite: "none",
         maxAge : 60* 60 * 1000
     })
 
     const ticket_payload = await ticket.getPayload()
-    log(ticket_payload)
+    res.status(201).json({data: "succses", status: 201})
+    log({
+        data: [
+            {
+                token: token,
+                decode: decode,
+                signJwt: accses_token_sign,
+                ticket: ticket_payload
+            }
+        ]
+    })
 }
 
 
