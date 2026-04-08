@@ -11,7 +11,7 @@ const MidlewereSecurity = ({children}: props) => {
     useEffect(() => {
         const checkingData =  async() => {
         try {
-        const res = await axios.get(URL_BACKEND_TOKEN, {
+        const res = await axios.get("https://oauth-apis.koyeb.app/auth/checking/token", {
             withCredentials: true
         })
         log(res.data)
