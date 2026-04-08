@@ -9,6 +9,10 @@ import cookieParser from "cookie-parser";
 import { routes } from "./routes/routes.route.js";
 const log = console.log
 
+dotenv.config();
+const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
+const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
+const port =  process.env.PORT || 3000
 const FRONTEND_URL = process.env.FRONTEND_URL
 
 if(!FRONTEND_URL) {
@@ -39,10 +43,6 @@ app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
 })
 
 
-dotenv.config();
-const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
-const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
-const port =  process.env.PORT || 3000
 
 try {
   app.use(routes)

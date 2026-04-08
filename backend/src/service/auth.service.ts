@@ -88,6 +88,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
     if(!token) {
         log("cannot find cookie")
         res.redirect(URL_FRONTEND_LOGIN!)
+        return
     }
     
     const decode = jwt.verify(token, KEY_TOKEN_JWT, {
