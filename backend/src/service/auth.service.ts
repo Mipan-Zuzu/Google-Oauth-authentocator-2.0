@@ -59,10 +59,10 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     }
     
     log(token)
-    if(!URL_FRONTEND) { 
-        res.status(401).json({data: "unexpected type of url", status: 401})
-        return
-    }
+    // if(!URL_FRONTEND) { 
+    //     res.status(401).json({data: "unexpected type of url", status: 401})
+    //     return
+    // }
 
     res.cookie("token", token, {
         httpOnly: true,
@@ -71,9 +71,8 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         maxAge: 60 * 60 * 1000
     })
 
-    const decode = jwt.verify(token_code, KEY_TOKEN_JWT)
-    req.user = token_code
-    res.redirect(URL_FRONTEND)
+    // req.user = token_code
+    res.redirect(URL_FRONTEND!)
 }
 
 export const checking = async (req: Request, res: Response): Promise<void> => {
