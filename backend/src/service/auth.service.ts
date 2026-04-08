@@ -70,8 +70,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     res.cookie("token", JSON.stringify(tokens), {
         httpOnly: true,
         secure: true,
-        sameSite: "none",
-        domain: ".mipandev.my.id",
+        sameSite: "lax",
         maxAge: 60 * 60 * 1000
     })
     
@@ -120,8 +119,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         res.cookie("token_access", accses_token_sign, {
             httpOnly: true,
             secure: true,
-            sameSite: "none",
-            domain: ".mipandev.my.id",
+            sameSite: "lax",
             maxAge : 60* 60 * 1000
         })
 
