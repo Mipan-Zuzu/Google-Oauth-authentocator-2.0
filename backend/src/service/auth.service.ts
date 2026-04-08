@@ -67,11 +67,11 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     res.cookie("token", token, {
         httpOnly: true,
         secure: true,
+        sameSite: "none",
         maxAge: 60 * 60 * 1000
     })
 
-    // const decode = jwt.verify(token_code, KEY_TOKEN_JWT)
-    // req.user = decode
+    const decode = jwt.verify(token_code, KEY_TOKEN_JWT)
     req.user = token_code
     res.redirect(URL_FRONTEND)
 }
@@ -80,34 +80,34 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
     const log = console.log
     const {token} = req.cookies as myCookie
     
-    //     if(!KEY_TOKEN_JWT) {
-    //     res.status(401).json({data: "AnAuthorize", status : 401})
-    //     return
-    // }
-    // if(!token) {
-    //     res.status(401).json({data: "invalid token", status : 401})
-    //     return
-    // }
+    if(!KEY_TOKEN_JWT) {
+        res.status(401).json({data: "AnAuthorize", status : 401})
+        return
+    }
+    if(!token) {
+        res.status(401).json({data: "invalid token", status : 401})
+        return
+    }
     
     const decode = jwt.verify(token, KEY_TOKEN_JWT, {
         maxAge: "1h"
     }) as tokenAuth
     const {tokens} = await client.getToken(decode.token as string)
     
-    // if(!tokens) {
-    //     res.status(404).json({data: "cannot get user data", status : 404})
-    //     return
-    // }
+    if(!tokens) {
+        res.status(404).json({data: "cannot get user data", status : 404})
+        return
+    }
 
     const ticket = await client.verifyIdToken({
         idToken: tokens.id_token as string,
         audience: ID_CLIENT
     })
 
-    // if(!ticket) {
-    //     res.status(401).json({data: "failed to verify User", status : 401})
-    //     return
-    // }
+    if(!ticket) {
+        res.status(401).json({data: "failed to verify User", status : 401})
+        return
+    }
 
     res.cookie("token_access", tokens.access_token, {
         httpOnly: true,
