@@ -17,12 +17,16 @@ const FRONTEND_URL = process.env.FRONTEND_URL
 const db_username = process.env.DB_USERNAME
 const db_password = process.env.DB_PASSWORD
 
+console.log({
+  db_username, db_password
+})
+
 if(!FRONTEND_URL) {
   throw new Error("cannot find frontend url")
 }
 
 try {
-  mongoose.connect(`mongodb+srv://${db_username}:${db_password}@cluster0.kvl3gwe.mongodb.net/oauth`)
+  await mongoose.connect(`mongodb+srv://${db_username}:${db_password}@cluster0.kvl3gwe.mongodb.net/oauth`)
   log("mongoose succses connected")
 }catch (error) {
   if(error instanceof Error) {
