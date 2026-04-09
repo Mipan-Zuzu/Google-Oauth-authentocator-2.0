@@ -1,17 +1,13 @@
 //* third party
-import { type Response, type Request, request, response } from "express"
+import type {Request, Response} from "express"
 import jwt from "jsonwebtoken"
-import cookieParser from "cookie-parser"
 import dotenv from "dotenv"
 
 //* local
 import { url } from "./auth/google.js"
-import type { myCookie, tokenAuth } from "../types/main.type.js"
-import { OAuth2Client } from "google-auth-library"
+import type { myCookie} from "../types/main.type.js"
 import { client } from "./auth/google.js"
-import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client.js"
-import { NONAME } from "node:dns"
-import { stringify } from "node:querystring"
+import {userOauth} from "../model/databse.model.js"
 
 //* config
 dotenv.config()
@@ -73,6 +69,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        domain: ".mipandev.my.id",
         maxAge: 60 * 60 * 1000
     })
     
@@ -121,11 +118,39 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         res.cookie("token_access", accses_token_sign, {
             httpOnly: true,
             secure: true,
+            domain: ".mipandev.my.id",
             sameSite: "none",
             maxAge : 60* 60 * 1000
         })
 
+        const role_default = "user"
+        
         const ticket_payload = await ticket.getPayload()
+        const googleId = ticket_payload?.sub
+
+        if(!googleId) {
+            res.status(401).json({data: "ksong"})
+            return
+        }
+
+        const googleID_user =  await userOauth.findOne({googleId : googleId})
+
+        if(googleID_user) {
+            res.status(202).json({data: "data sudah ada"})  
+            return
+        }
+
+        const user_login = new userOauth({
+           googleId : ticket_payload?.sub,
+           name : ticket_payload?.name, 
+           refreshToken : parses_token.refresh_token,
+           email: ticket_payload?.email,
+           avatar : ticket_payload?.picture,
+           role : role_default
+        })
+
+        await user_login.save()
+        
         res.status(201).json({data: "succses", status: 201})
         log({
             data: [
