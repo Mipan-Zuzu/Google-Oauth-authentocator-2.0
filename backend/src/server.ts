@@ -15,24 +15,18 @@ const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
 const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
 const port =  process.env.PORT || 3000
 const FRONTEND_URL = process.env.FRONTEND_URL
-const db_username = process.env.DB_USERNAME
-const db_password = process.env.DB_PASSWORD
-
-console.log({
-  db_username, db_password
-})
+const PASSWORD_DB = process.env.DB_PASSWORD
 
 if(!FRONTEND_URL) {
   throw new Error("cannot find frontend url")
 }
-
-const connected_mongodb = async () => {
+const connected_mongodb = async (): Promise<void> => {
   try {
-    await mongoose.connect(`mongodb+srv://${db_username}:$  {db_password}@cluster0.kvl3gwe.mongodb.net/oauth`)
+    await mongoose.connect(`mongodb+srv://${PASSWORD_DB}:${PASSWORD_DB}@cluster0.kvl3gwe.mongodb.net/oauth`)
     log("mongoose succses connected")
   }catch (error) {
     if(error instanceof Error) {
-    throw new Error(error.message)
+    log(error.message)
     }
 }
 }
