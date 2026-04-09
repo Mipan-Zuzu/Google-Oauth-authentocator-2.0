@@ -5,6 +5,7 @@ import type { Response, Request, NextFunction } from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import mongoose, { mongo } from "mongoose";
+import { userOauth } from "./model/databse.model.js";
 
 //local
 import { routes } from "./routes/routes.route.js";
@@ -25,14 +26,20 @@ if(!FRONTEND_URL) {
   throw new Error("cannot find frontend url")
 }
 
-try {
-  await mongoose.connect(`mongodb+srv://${db_username}:${db_password}@cluster0.kvl3gwe.mongodb.net/oauth`)
-  log("mongoose succses connected")
-}catch (error) {
-  if(error instanceof Error) {
+const connected_mongodb = async () => {
+  try {
+    await mongoose.connect(`mongodb+srv://${db_username}:$  {db_password}@cluster0.kvl3gwe.mongodb.net/oauth`)
+    log("mongoose succses connected")
+  }catch (error) {
+    if(error instanceof Error) {
     throw new Error(error.message)
-  }
+    }
 }
+}
+
+connected_mongodb()
+
+
 
 const app = express();
 app.use(express.json());
