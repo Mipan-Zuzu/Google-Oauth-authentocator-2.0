@@ -1,25 +1,34 @@
 //third party
 import dotenv from "dotenv";
-dotenv.config()
 import express, { Router} from "express";
 import type { Response, Request, NextFunction } from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser";
+import mongoose, { mongo } from "mongoose";
 
 //local
 import { routes } from "./routes/routes.route.js";
+dotenv.config()
 const log = console.log
-
 const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
 const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
 const port =  process.env.PORT || 3000
 const FRONTEND_URL = process.env.FRONTEND_URL
+const db_username = process.env.DB_USERNAME
+const db_password = process.env.DB_PASSWORD
 
 if(!FRONTEND_URL) {
   throw new Error("cannot find frontend url")
 }
 
-console.log(FRONTEND_URL)
+try {
+  mongoose.connect(`mongodb+srv://${db_username}:${db_password}@cluster0.kvl3gwe.mongodb.net/oauth`)
+  log("mongoose succses connected")
+}catch (error) {
+  if(error instanceof Error) {
+    throw new Error(error.message)
+  }
+}
 
 const app = express();
 app.use(express.json());
@@ -41,8 +50,6 @@ app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
   const status = 500
   if(error instanceof Error) errRes(req, res, next,status, error.message)
 })
-
-
 
 try {
   app.use(routes)

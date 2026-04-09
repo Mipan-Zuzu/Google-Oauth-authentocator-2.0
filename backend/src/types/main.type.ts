@@ -7,3 +7,12 @@
         iat: number,
         exp: number
     }
+
+    export interface UIuserSchema {
+        googleId: string
+        refreshToken: string
+        email? : string
+        name? : string
+        avatar? : string
+        role : string
+    }
