@@ -17,13 +17,14 @@ export const cookie_testing = async (req: Request, res: Response): Promise<void>
         expiresIn: 60 * 60 * 60
     })
 
+    
+
     res.cookie("suki", jwt_payload, 
         {
             maxAge: 60 * 60 * 60,
             httpOnly: true,
             secure: true,
-            sameSite: "none",
-            domain: "oauth.mipandev.my.id"
+            sameSite: "none"
         })
     
     res.json("succses")

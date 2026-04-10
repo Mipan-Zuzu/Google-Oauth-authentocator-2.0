@@ -13,6 +13,7 @@ const MidlewereSecurity = ({children}: props) => {
             withCredentials: true
         })
         log(test)
+        log(test.headers.host)
         const res = await axios.get("https://oauth-apis.koyeb.app/auth/checking/token", {
             withCredentials: true
         })
