@@ -12,8 +12,10 @@ const GoogleLoginComponents = () => {
     const URL_AUTH_GOOGLE = import.meta.env.VITE_URL_BACKEND_GOOGLE_AUTH
 
     const getData = async(): Promise<void> => {
-        const res = (await axios.get(URL_AUTH_GOOGLE)).data
-        const {data, status} = res
+        const res = (await axios.get(URL_AUTH_GOOGLE, {
+          withCredentials: true
+        }))
+        const {data, status} = res.data
         log({status: status})
         window.location.href = data
     }

@@ -67,9 +67,10 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     
     res.cookie("token", JSON.stringify(tokens), {
         httpOnly: true,
-        // secure: true,
+        secure: true,
         sameSite: "none",
-        maxAge: 60 * 60 * 1000
+        maxAge: 60 * 60 * 1000,
+        path: "/"
     })
     
     res.redirect(URL_FRONTEND!)
@@ -116,9 +117,10 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
         res.cookie("token_access", accses_token_sign, {
             httpOnly: true,
-            // secure: true,
+            secure: true,
             sameSite: "none",
-            maxAge : 60 * 60 * 1000
+            maxAge : 60 * 60 * 1000,
+            path: "/"
         })
 
         const role_default = "user"
