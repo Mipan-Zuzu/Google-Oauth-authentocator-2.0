@@ -23,7 +23,7 @@ export const cookie_testing = async (req: Request, res: Response): Promise<void>
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            domain: ".mipandev.my.id"
+            domain: "oauth.mipandev.my.id"
         })
     
     res.json("succses")
