@@ -24,7 +24,8 @@ export const cookie_testing = async (req: Request, res: Response): Promise<void>
             maxAge: 60 * 60 * 60,
             httpOnly: true,
             secure: true,
-            sameSite: "none"
+            sameSite: "none",
+            domain: "oauth-apis.koyeb.app"
         })
     
     res.json("succses")
