@@ -48,10 +48,10 @@ export const errRes = (req: Request, res: Response, next: NextFunction, status: 
   res.status(status).json({data: message, status: status})
 }
 
-app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
-  log(error)
-  const status = 500
-  if(error instanceof Error) errRes(req, res, next,status, error.message)
+app.use(( req: Request, res:Response, next: NextFunction) => {
+  log("host", req.headers.host)
+  log("hostname", req.hostname)
+  next()
 })
 
 try {
