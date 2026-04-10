@@ -25,8 +25,6 @@ routes.get("/auth/google/callback",
 routes.get("/auth/checking/token", 
    async (req: Request, res: Response): Promise<void> => checking(req, res))
 
-routes.get("/auth/checking/token", async (req: Request, res: Response): Promise<void> => checking(req, res))
-
 routes.get("/auth/testing", async (req: Request, res: Response): Promise<void> => cookie_testing(req, res))
 
 
