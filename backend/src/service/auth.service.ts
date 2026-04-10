@@ -70,7 +70,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         secure: true,
         sameSite: "none",
         maxAge: 60 * 60 * 1000,
-        path: "/"
+        domain: ".mipandev.my.id"
     })
     
     res.redirect(URL_FRONTEND!)
@@ -120,6 +120,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
             secure: true,
             sameSite: "none",
             maxAge : 60 * 60 * 1000,
+            domain: "oauth.mipandev.my.id"
         })
 
         const role_default = "user"
