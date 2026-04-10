@@ -33,8 +33,6 @@ const connected_mongodb = async (): Promise<void> => {
 
 connected_mongodb()
 
-
-
 const app = express();
 app.use(express.json());
 app.use(cookieParser())
