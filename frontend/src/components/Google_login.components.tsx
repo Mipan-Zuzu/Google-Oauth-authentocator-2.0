@@ -16,8 +16,18 @@ const GoogleLoginComponents = () => {
           withCredentials: true
         }))
         const {data, status} = res.data
+        console.log(res.data)
+        if(!data) {
+            log("undefined data")
+          return
+        }
         log({status: status})
-        window.location.href = data
+        const windows_popup = window.open(
+          data,
+          "google login",
+          "width=500,height=600"
+        )
+        console.log(windows_popup)
     }
 
     return (
