@@ -120,7 +120,6 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
             secure: true,
             sameSite: "none",
             maxAge : 60 * 60 * 1000,
-            path: "/"
         })
 
         const role_default = "user"
@@ -151,7 +150,12 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
         await user_login.save()
         
-        res.status(201).json({data: "succses", status: 201})
+        res.send(`
+                <script>
+                    window.openr.postMessage("login_succses, "*")
+                    window.close()
+                </script>
+            `)
         log({
             data: [
                 {

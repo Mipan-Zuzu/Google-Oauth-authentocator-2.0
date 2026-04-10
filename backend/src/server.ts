@@ -37,7 +37,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser())
 app.use(cors({
-  origin: "https://oauth.mipandev.my.id",
+  origin: FRONTEND_URL,
   credentials: true
 }))
 
