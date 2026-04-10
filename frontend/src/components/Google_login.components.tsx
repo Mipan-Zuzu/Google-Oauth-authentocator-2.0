@@ -12,14 +12,16 @@ const GoogleLoginComponents = () => {
     const URL_AUTH_GOOGLE = import.meta.env.VITE_URL_BACKEND_GOOGLE_AUTH
 
     const getData = async(): Promise<void> => {
-        const res = (await axios.get(URL_AUTH_GOOGLE)).data
-        const {data, status} = res
+        const res = (await axios.get(URL_AUTH_GOOGLE, {
+          withCredentials: true
+        }))
+        const {data, status} = res.data
         log({status: status})
         window.location.href = data
     }
 
     return (
-        <div className="px-15 shadow-2xl p-3 rounded-lg hover:scale-110 duration-300">
+        <div className="px-15 shadow-2xl p-3 rounded-lg hover:scale-110 duration-300 bg-white">
             <div className="flex gap-4">
                 <GoogleIco />
                 <Button onClick={getData}>Login dengan Google</Button>

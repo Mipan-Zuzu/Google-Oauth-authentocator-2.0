@@ -1,17 +1,13 @@
 //* third party
-import { type Response, type Request, request, response } from "express"
+import type {Request, Response} from "express"
 import jwt from "jsonwebtoken"
-import cookieParser from "cookie-parser"
 import dotenv from "dotenv"
-
 
 //* local
 import { url } from "./auth/google.js"
-import type { myCookie, tokenAuth } from "../types/main.type.js"
-import { OAuth2Client } from "google-auth-library"
+import type { myCookie} from "../types/main.type.js"
 import { client } from "./auth/google.js"
-import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client.js"
-import { NONAME } from "node:dns"
+import {userOauth} from "../model/databse.model.js"
 
 //* config
 dotenv.config()
@@ -49,7 +45,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     }
     
     const token = jwt.sign(payload, KEY_TOKEN_JWT, {
-        expiresIn: 60 * 60 * 1000
+        expiresIn: "5m"
     })
 
     log(`token_code ${token_code}`)
@@ -64,15 +60,19 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         res.status(401).json({data: "unexpected type of url", status: 401})
         return
     }
+
+    const {tokens} = await client.getToken(token_code as string)
+
+    console.log(tokens)
     
-    res.cookie("token", token, {
+    res.cookie("token", JSON.stringify(tokens), {
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        maxAge: 60 * 60 * 1000
+        maxAge: 60 * 60 * 1000,
+        path: "/"
     })
     
-    // req.user = token_code
     res.redirect(URL_FRONTEND!)
 }
 
@@ -87,58 +87,80 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
     if(!token) {
         log("cannot find cookie")
-        res.redirect(URL_FRONTEND_LOGIN!)
-    }
-    
-    const decode = jwt.verify(token, KEY_TOKEN_JWT, {
-        maxAge: "1h"
-    }) as tokenAuth
-
-    const {tokens} = await client.getToken(decode.token as string)
-    
-    if(!tokens) {
-        res.status(404).json({data: "cannot get user data", status : 404})
+        res.status(401).json({data: "Cookie token not found", status: 401})
         return
     }
 
-    const ticket = await client.verifyIdToken({
-        idToken: tokens.id_token as string,
-        audience: ID_CLIENT
-    })
+        const parses_token = typeof token === 'string' ? JSON.parse(token) : token
+        log(`token ${token}`)
+        
+        const ticket = await client.verifyIdToken({
+            idToken: parses_token.id_token,
+            audience: ID_CLIENT
+        })
 
-    if(!ticket) {
-        res.status(401).json({data: "failed to verify User", status : 401})
-        return
-    }
+        if(!ticket) {
+            res.status(401).json({data: "failed to verify User", status : 401})
+            return
+        }
 
-    if(!tokens.access_token) {
-        res.status(401).json({data: "anAuthorize accses token"})
-        return
-    }
-    const accses_token: string = tokens.access_token
-    const accses_token_sign = jwt.sign(accses_token, KEY_TOKEN_JWT, {
-        expiresIn: 60 * 60 * 1000
-    })
+        const accses_token_parses = parses_token.access_token
+        log(accses_token_parses)
+        if(!accses_token_parses) {
+            res.status(401).json({data: "anAuthorize accses token", status: 401})
+            return
+        }
 
-    res.cookie("token_access", accses_token_sign, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge : 60* 60 * 1000
-    })
+        const accses_token_sign = jwt.sign({token: accses_token_parses}, KEY_TOKEN_JWT, {
+            expiresIn: "5m"
+        })
 
-    const ticket_payload = await ticket.getPayload()
-    res.status(201).json({data: "succses", status: 201})
-    log({
-        data: [
-            {
-                token: token,
-                decode: decode,
-                signJwt: accses_token_sign,
-                ticket: ticket_payload
-            }
-        ]
-    })
+        res.cookie("token_access", accses_token_sign, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge : 60 * 60 * 1000,
+            path: "/"
+        })
+
+        const role_default = "user"
+        
+        const ticket_payload = await ticket.getPayload()
+        const googleId = ticket_payload?.sub
+
+        if(!googleId) {
+            res.status(401).json({data: "ksong", satatus: 401})
+            return
+        }
+
+        const googleID_user =  await userOauth.findOne({googleId : googleId})
+
+        if(googleID_user) {
+            res.status(202).json({data: "data sudah ada"})  
+            return
+        }
+
+        const user_login = new userOauth({
+           googleId : ticket_payload?.sub,
+           name : ticket_payload?.name, 
+           refreshToken : parses_token.refresh_token,
+           email: ticket_payload?.email,
+           avatar : ticket_payload?.picture,
+           role : role_default
+        })
+
+        await user_login.save()
+        
+        res.status(201).json({data: "succses", status: 201})
+        log({
+            data: [
+                {
+                    token: token,
+                    signJwt: accses_token_sign,
+                    ticket: ticket_payload
+                }
+            ]
+        })
 }
 
 

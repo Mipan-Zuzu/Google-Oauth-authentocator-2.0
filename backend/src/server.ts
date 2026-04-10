@@ -4,24 +4,40 @@ import express, { Router} from "express";
 import type { Response, Request, NextFunction } from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser";
+import mongoose, { mongo } from "mongoose";
+import { userOauth } from "./model/databse.model.js";
 
 //local
 import { routes } from "./routes/routes.route.js";
+dotenv.config()
 const log = console.log
-
+const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
+const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
+const port =  process.env.PORT || 3000
 const FRONTEND_URL = process.env.FRONTEND_URL
+const PASSWORD_DB = process.env.DB_PASSWORD
 
 if(!FRONTEND_URL) {
   throw new Error("cannot find frontend url")
 }
+const connected_mongodb = async (): Promise<void> => {
+  try {
+    await mongoose.connect(`mongodb+srv://${PASSWORD_DB}:${PASSWORD_DB}@cluster0.kvl3gwe.mongodb.net/oauth`)
+    log("mongoose succses connected")
+  }catch (error) {
+    if(error instanceof Error) {
+    log(error.message)
+    }
+}
+}
 
-console.log(FRONTEND_URL)
+connected_mongodb()
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser())
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "https://oauth.mipandev.my.id",
+  origin: "https://oauth.mipandev.my.id",
   credentials: true
 }))
 
@@ -37,12 +53,6 @@ app.use((error: unknown, req: Request, res:Response, next: NextFunction) => {
   const status = 500
   if(error instanceof Error) errRes(req, res, next,status, error.message)
 })
-
-
-dotenv.config();
-const ACCSES_TOKEN_JWT = process.env.KEY_TOKEN_JWT;
-const AUTH_GOOGLE_ID_CLIENT = process.env.AUTH_GOOGLE_ID_CLIENT;
-const port =  process.env.PORT || 3000
 
 try {
   app.use(routes)
