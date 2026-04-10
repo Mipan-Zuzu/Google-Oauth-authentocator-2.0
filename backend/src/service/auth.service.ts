@@ -45,7 +45,7 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     }
     
     const token = jwt.sign(payload, KEY_TOKEN_JWT, {
-        expiresIn: 60 * 60 * 1000
+        expiresIn: "5m"
     })
 
     log(`token_code ${token_code}`)
@@ -67,9 +67,8 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     
     res.cookie("token", JSON.stringify(tokens), {
         httpOnly: true,
-        secure: true,
+        // secure: true,
         sameSite: "none",
-        domain: ".mipandev.my.id",
         maxAge: 60 * 60 * 1000
     })
     
@@ -112,15 +111,14 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         }
 
         const accses_token_sign = jwt.sign({token: accses_token_parses}, KEY_TOKEN_JWT, {
-            expiresIn: 60 * 60 * 1000
+            expiresIn: "5m"
         })
 
         res.cookie("token_access", accses_token_sign, {
             httpOnly: true,
-            secure: true,
-            domain: ".mipandev.my.id",
+            // secure: true,
             sameSite: "none",
-            maxAge : 60* 60 * 1000
+            maxAge : 60 * 60 * 1000
         })
 
         const role_default = "user"
@@ -129,7 +127,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         const googleId = ticket_payload?.sub
 
         if(!googleId) {
-            res.status(401).json({data: "ksong"})
+            res.status(401).json({data: "ksong", satatus: 401})
             return
         }
 
