@@ -1,43 +1,54 @@
 //* Third party
 import axios from "axios"
+// import { useNavigate } from "react-router-dom"
 
 //* Local
-import Button from "../ui/button.ui"
+// import Button from "../ui/button.ui"
+import { useEffect, useState } from "react"
 
 //* config
-const log = console.log
+// const log = console.log
 
 const GoogleLoginComponents = () => {
-  //* config_body
-    const URL_AUTH_GOOGLE = import.meta.env.VITE_URL_BACKEND_GOOGLE_AUTH
+  
+  
+  const URL_AUTH_GOOGLE = import.meta.env.VITE_URL_BACKEND_GOOGLE_AUTH
+  
+  const [url, setUrl] = useState<string>("")
 
-    const getData = async(): Promise<void> => {
-        const res = await axios.get(URL_AUTH_GOOGLE, {
-          withCredentials: true
-        })
-        const {data, status} = res.data
-        console.log(res.data)
-        if(!data) {
-            log("undefined data")
-          return
-        }
-        log({status: status})
-        const windows_popup = window.open(
-          data,
-          "google login",
-          "width=500,height=600"
-        )
-        console.log(windows_popup)
+   useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(URL_AUTH_GOOGLE, {
+        withCredentials: true
+      });
+
+      const { data } = res.data;
+
+      if (!data) return;
+
+      setUrl(data);
+    } catch (err) {
+      console.error(err);
     }
+  };
 
-    return (
-        <div className="px-15 shadow-2xl p-3 rounded-lg hover:scale-110 duration-300 bg-white">
-            <div className="flex gap-4">
-                <GoogleIco />
-                <Button onClick={getData}>Login dengan Google</Button>
-            </div>
-        </div>
-    )
+  fetchData();
+}, [URL_AUTH_GOOGLE]);
+
+  return (
+    <div className="px-15 shadow-2xl p-3 rounded-lg bg-white">
+      <div className="flex gap-4">
+        <GoogleIco />
+        <button
+          disabled={!url}
+          onClick={() => window.location.href = url}
+        >
+          {url ? "Login dengan Google" : "Loading..."}
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export const GoogleIco = () => {
