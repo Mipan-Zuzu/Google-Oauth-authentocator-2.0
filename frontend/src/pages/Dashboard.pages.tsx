@@ -1,7 +1,7 @@
 
 const Dashboard = () => {
     return (
-        <div className="bg-cyan-800">
+        <div>
             <h1>Ini Dashboard</h1>
         </div>
     )
