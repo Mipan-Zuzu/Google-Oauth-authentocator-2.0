@@ -5,6 +5,7 @@ import axios from "axios"
 //* Local
 // import Button from "../ui/button.ui"
 import { useEffect, useState } from "react"
+import Button from "../ui/button.ui"
 
 //* config
 // const log = console.log
@@ -40,12 +41,12 @@ const GoogleLoginComponents = () => {
     <div className="px-15 shadow-2xl p-3 rounded-lg bg-white">
       <div className="flex gap-4">
         <GoogleIco />
-        <button
+        <Button
           disabled={!url}
           onClick={() => window.location.href = url}
         >
           {url ? "Login dengan Google" : "Loading..."}
-        </button>
+        </Button>
       </div>
     </div>
   )

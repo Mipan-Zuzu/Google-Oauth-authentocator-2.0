@@ -1,8 +1,19 @@
+import axios from "axios"
 
 const Dashboard = () => {
+
+    const testing = async () => {
+        const res = await axios.post("http://localhost:3000/auth/checking/token", {} , {
+            withCredentials: true
+        })
+
+        console.log(res.data)
+    }
+
     return (
-        <div className="bg-cyan-800">
+        <div>
             <h1>Ini Dashboard</h1>
+            <button onClick={() => testing()}>klik</button>
         </div>
     )
 }

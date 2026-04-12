@@ -8,6 +8,7 @@ import { url } from "./auth/google.js"
 import type { myCookie} from "../types/main.type.js"
 import { client } from "./auth/google.js"
 import {userOauth} from "../model/databse.model.js"
+import { json } from "node:stream/consumers"
 
 //* config
 dotenv.config()
@@ -15,6 +16,7 @@ const KEY_TOKEN_JWT = process.env.KEY_TOKEN_JWT!
 const URL_FRONTEND = process.env.DASHBOARD_URL
 const URL_FRONTEND_LOGIN = process.env.FRONTEND_URL
 const ID_CLIENT =  process.env.AUTH_GOOGLE_ID_CLIENT as string
+const DOMAIN = process.env.DOMAIN
 
 const log = console.log
 //* service
@@ -65,23 +67,27 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 
     console.log(tokens)
     
-    res.cookie("token", JSON.stringify(tokens), {
+    res.cookie("token", tokens, {
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        // secure: !DOMAIN? false : true,
+        sameSite: "lax",
         maxAge: 60 * 60 * 1000,
-        domain: "oauth-apis.koyeb.app"
+        // domain: !DOMAIN ? "localhost" : "oauth-apis.koyeb.app"
     })
     
     res.redirect(URL_FRONTEND!)
 }
 
 export const checking = async (req: Request, res: Response): Promise<void> => {
-    const log = console.log
     const {token} = req.cookies as myCookie
+
+        // console.log("METHOD :" , JSON.stringify(req.headers, null, 2))
+        // console.log("HEADER :" , req.headers.cookie)
+        // console.log("PARSED:" , req.cookies)
     
     if(!KEY_TOKEN_JWT) {
         res.status(401).json({data: "AnAuthorize", status : 401})
+        log("key_token ksong")
         return
     }
 
@@ -100,6 +106,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         })
 
         if(!ticket) {
+            log("ticket kosong")
             res.status(401).json({data: "failed to verify User", status : 401})
             return
         }
@@ -107,6 +114,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         const accses_token_parses = parses_token.access_token
         log(accses_token_parses)
         if(!accses_token_parses) {
+            log("accses token kosong")
             res.status(401).json({data: "anAuthorize accses token", status: 401})
             return
         }
@@ -117,10 +125,10 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
         res.cookie("token_access", accses_token_sign, {
             httpOnly: true,
-            secure: true,
-            sameSite: "none",
+            secure: !DOMAIN? false : true,
+            sameSite: !DOMAIN? "lax" : "none",
             maxAge : 60 * 60 * 1000,
-            domain: "oauth-apis.koyeb.app"
+            domain: !DOMAIN ? "localhost" : "oauth-apis.koyeb.app"
         })
 
         const role_default = "user"
@@ -129,6 +137,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         const googleId = ticket_payload?.sub
 
         if(!googleId) {
+            log("googleid kosong")
             res.status(401).json({data: "ksong", satatus: 401})
             return
         }
@@ -136,6 +145,7 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         const googleID_user =  await userOauth.findOne({googleId : googleId})
 
         if(googleID_user) {
+            log("googleId_user find db ksoong")
             res.status(202).json({data: "data sudah ada"})  
             return
         }
@@ -151,12 +161,12 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
         await user_login.save()
         
-        res.send(`
-                <script>
-                    window.openr.postMessage("login_succses, "*")
-                    window.close()
-                </script>
-            `)
+        res.status(200).json({
+            data: true,
+            user: user_login,
+            sub: ticket_payload.sub,
+            status: 200
+        })
         log({
             data: [
                 {
@@ -167,7 +177,6 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
             ]
         })
 }
-
 
 export const ping = (req: Request, res: Response): void => {
     res.json("PONG")
