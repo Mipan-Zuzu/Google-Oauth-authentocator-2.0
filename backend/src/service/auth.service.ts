@@ -79,11 +79,11 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 }
 
 export const checking = async (req: Request, res: Response): Promise<void> => {
-    const {token} = req.cookies as myCookie
+    // const {token} = req.cookies as myCookie
 
-        // console.log("METHOD :" , JSON.stringify(req.headers, null, 2))
-        // console.log("HEADER :" , req.headers.cookie)
-        // console.log("PARSED:" , req.cookies)
+        console.log("METHOD :" , JSON.stringify(req.headers, null, 2))
+        console.log("HEADER :" , req.headers.cookie)
+        console.log("PARSED:" , req.cookies)
     
     if(!KEY_TOKEN_JWT) {
         res.status(401).json({data: "AnAuthorize", status : 401})
@@ -91,91 +91,93 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         return
     }
 
-    if(!token) {
-        log("cannot find cookie")
-        res.status(401).json({data: "Cookie token not found", status: 401})
-        return
-    }
+    res.json({data: req.cookies})
 
-        const parses_token = typeof token === 'string' ? JSON.parse(token) : token
-        log(`token ${token}`)
+    // if(!token) {
+    //     log("cannot find cookie")
+    //     res.status(401).json({data: "Cookie token not found", status: 401})
+    //     return
+    // }
+
+        // const parses_token = typeof token === 'string' ? JSON.parse(token) : token
+        // log(`token ${token}`)
         
-        const ticket = await client.verifyIdToken({
-            idToken: parses_token.id_token,
-            audience: ID_CLIENT
-        })
+        // const ticket = await client.verifyIdToken({
+        //     idToken: parses_token.id_token,
+        //     audience: ID_CLIENT
+        // })
 
-        if(!ticket) {
-            log("ticket kosong")
-            res.status(401).json({data: "failed to verify User", status : 401})
-            return
-        }
+        // if(!ticket) {
+        //     log("ticket kosong")
+        //     res.status(401).json({data: "failed to verify User", status : 401})
+        //     return
+        // }
 
-        const accses_token_parses = parses_token.access_token
-        log(accses_token_parses)
-        if(!accses_token_parses) {
-            log("accses token kosong")
-            res.status(401).json({data: "anAuthorize accses token", status: 401})
-            return
-        }
+        // const accses_token_parses = parses_token.access_token
+        // log(accses_token_parses)
+        // if(!accses_token_parses) {
+        //     log("accses token kosong")
+        //     res.status(401).json({data: "anAuthorize accses token", status: 401})
+        //     return
+        // }
 
-        const accses_token_sign = jwt.sign({token: accses_token_parses}, KEY_TOKEN_JWT, {
-            expiresIn: "5m"
-        })
+        // const accses_token_sign = jwt.sign({token: accses_token_parses}, KEY_TOKEN_JWT, {
+        //     expiresIn: "5m"
+        // })
 
-        res.cookie("token_access", accses_token_sign, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            maxAge : 60 * 60 * 1000,
-            domain: "oauth-apis.koyeb.app"
-        })
+        // res.cookie("token_access", accses_token_sign, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "none",
+        //     maxAge : 60 * 60 * 1000,
+        //     domain: "oauth-apis.koyeb.app"
+        // })
 
-        const role_default = "user"
+        // const role_default = "user"
         
-        const ticket_payload = await ticket.getPayload()
-        const googleId = ticket_payload?.sub
+        // const ticket_payload = await ticket.getPayload()
+        // const googleId = ticket_payload?.sub
 
-        if(!googleId) {
-            log("googleid kosong")
-            res.status(401).json({data: "ksong", satatus: 401})
-            return
-        }
+        // if(!googleId) {
+        //     log("googleid kosong")
+        //     res.status(401).json({data: "ksong", satatus: 401})
+        //     return
+        // }
 
-        const googleID_user =  await userOauth.findOne({googleId : googleId})
+        // const googleID_user =  await userOauth.findOne({googleId : googleId})
 
-        if(googleID_user) {
-            log("googleId_user find db ksoong")
-            res.status(202).json({data: "data sudah ada"})  
-            return
-        }
+        // if(googleID_user) {
+        //     log("googleId_user find db ksoong")
+        //     res.status(202).json({data: "data sudah ada"})  
+        //     return
+        // }
 
-        const user_login = new userOauth({
-           googleId : ticket_payload?.sub,
-           name : ticket_payload?.name, 
-           refreshToken : parses_token.refresh_token,
-           email: ticket_payload?.email,
-           avatar : ticket_payload?.picture,
-           role : role_default
-        })
+        // const user_login = new userOauth({
+        //    googleId : ticket_payload?.sub,
+        //    name : ticket_payload?.name, 
+        //    refreshToken : parses_token.refresh_token,
+        //    email: ticket_payload?.email,
+        //    avatar : ticket_payload?.picture,
+        //    role : role_default
+        // })
 
-        await user_login.save()
+        // await user_login.save()
         
-        res.status(200).json({
-            data: true,
-            user: user_login,
-            sub: ticket_payload.sub,
-            status: 200
-        })
-        log({
-            data: [
-                {
-                    token: token,
-                    signJwt: accses_token_sign,
-                    ticket: ticket_payload
-                }
-            ]
-        })
+        // res.status(200).json({
+        //     data: true,
+        //     user: user_login,
+        //     sub: ticket_payload.sub,
+        //     status: 200
+        // })
+        // log({
+        //     data: [
+        //         {
+        //             token: token,
+        //             signJwt: accses_token_sign,
+        //             ticket: ticket_payload
+        //         }
+        //     ]
+        // })
 }
 
 export const ping = (req: Request, res: Response): void => {
