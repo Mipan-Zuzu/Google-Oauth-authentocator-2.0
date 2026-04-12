@@ -69,10 +69,10 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     
     res.cookie("token", tokens, {
         httpOnly: true,
-        // secure: !DOMAIN? false : true,
-        sameSite: "lax",
+        secure: true,
+        sameSite: "none",
         maxAge: 60 * 60 * 1000,
-        // domain: !DOMAIN ? "localhost" : "oauth-apis.koyeb.app"
+        domain:"oauth-apis.koyeb.app"
     })
     
     res.redirect(URL_FRONTEND!)
@@ -125,10 +125,10 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
 
         res.cookie("token_access", accses_token_sign, {
             httpOnly: true,
-            secure: !DOMAIN? false : true,
-            sameSite: !DOMAIN? "lax" : "none",
+            secure: true,
+            sameSite: "none",
             maxAge : 60 * 60 * 1000,
-            domain: !DOMAIN ? "localhost" : "oauth-apis.koyeb.app"
+            domain: "oauth-apis.koyeb.app"
         })
 
         const role_default = "user"
