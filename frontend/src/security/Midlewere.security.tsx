@@ -4,19 +4,22 @@ import { useEffect, useState } from "react"
 
 const MidlewereSecurity = ({children}: props) => {
     const URL_BACKEND_TOKEN = import.meta.env.VITE_URL_BACKEND_TOKEN
+    // const URL_BACKEND_TESTING = import.meta.env.VITE_URL_BACKEND_TESTING
     const log = console.log
     const [errors, setErrors] = useState<string>()
     useEffect(() => {
         const checkingData =  async() => {
         try {
-        const test = await axios.get("https://oauth-apis.koyeb.app/auth/testing", {
-            withCredentials: true
-        })
-        log(test)
-        log(test.headers.host)
-        const res = await axios.get("https://oauth-apis.koyeb.app/auth/checking/token", {
-            withCredentials: true
-        })
+        // const test = await axios.post(URL_BACKEND_TESTING, {
+        //     withCredentials: true
+        // })
+        // log(test)
+        // log(test.headers.host)
+        const res = await axios.post(URL_BACKEND_TOKEN, {}, 
+            {
+                withCredentials: true
+            }
+        )
         log(res.data)
         if(!res.data){
             alert(errors)
