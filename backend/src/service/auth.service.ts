@@ -71,8 +71,6 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        maxAge: 60 * 60 * 1000,
-        domain:"oauth-apis.koyeb.app"
     })
     
     res.redirect(URL_FRONTEND!)

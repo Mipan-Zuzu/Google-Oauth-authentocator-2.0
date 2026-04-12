@@ -1,13 +1,13 @@
-import axios from "axios"
+// import axios from "axios"
 
 const Dashboard = () => {
 
     const testing = async () => {
-        const res = await axios.post("http://localhost:3000/auth/checking/token", {} , {
-            withCredentials: true
-        })
+        // const res = await axios.post("http://localhost:3000/auth/checking/token", {} , {
+        //     withCredentials: true
+        // })
 
-        console.log(res.data)
+        // console.log(res.data)
     }
 
     return (
