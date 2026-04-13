@@ -14,7 +14,7 @@ const GoogleLoginComponents = () => {
   
   
   const URL_AUTH_GOOGLE = import.meta.env.VITE_URL_BACKEND_GOOGLE_AUTH
-  
+
   const [url, setUrl] = useState<string>("")
 
    useEffect(() => {

@@ -2,13 +2,14 @@
 import type {Request, Response} from "express"
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
+import crypto from "crypto"
 
 //* local
 import { url } from "./auth/google.js"
 import type { myCookie} from "../types/main.type.js"
 import { client } from "./auth/google.js"
 import {userOauth} from "../model/databse.model.js"
-import { json } from "node:stream/consumers"
+import { redis } from "../service/redis/redis.js"
 
 //* config
 dotenv.config()
@@ -17,6 +18,7 @@ const URL_FRONTEND = process.env.DASHBOARD_URL
 const URL_FRONTEND_LOGIN = process.env.FRONTEND_URL
 const ID_CLIENT =  process.env.AUTH_GOOGLE_ID_CLIENT as string
 const DOMAIN = process.env.DOMAIN
+
 
 const log = console.log
 //* service
@@ -50,9 +52,6 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
         expiresIn: "5m"
     })
 
-    log(`token_code ${token_code}`)
-    log(`sign token jwt ${token}`)
-
     if(!token) {
         res.status(404).json({data: "token invalid", status: 404})
         return
@@ -65,117 +64,104 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 
     const {tokens} = await client.getToken(token_code as string)
 
-    console.log(tokens)
-    
     res.cookie("token", tokens, {
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 1000,
     })
     
     res.redirect(URL_FRONTEND!)
 }
 
 export const checking = async (req: Request, res: Response): Promise<void> => {
-    // const {token} = req.cookies as myCookie
-
-        console.log("METHOD :" , JSON.stringify(req.headers, null, 2))
-        console.log("HEADER :" , req.headers.cookie)
-        console.log("PARSED:" , req.cookies)
+    const {token} = req.cookies as myCookie
     
+    if(!token) {
+        res.status(401).json({data: "Cookie token not found", status: 401})
+        return
+    }
     if(!KEY_TOKEN_JWT) {
         res.status(401).json({data: "AnAuthorize", status : 401})
-        log("key_token ksong")
         return
     }
 
-    res.json({data: req.cookies})
-
-    // if(!token) {
-    //     log("cannot find cookie")
-    //     res.status(401).json({data: "Cookie token not found", status: 401})
-    //     return
-    // }
-
-        // const parses_token = typeof token === 'string' ? JSON.parse(token) : token
-        // log(`token ${token}`)
+    const parses_token = typeof token === 'string' ? JSON.parse(token) : token
         
-        // const ticket = await client.verifyIdToken({
-        //     idToken: parses_token.id_token,
-        //     audience: ID_CLIENT
-        // })
+    //TODO: TAMPILKAN USER DATA YANG LOGIN
+    const ticket = await client.verifyIdToken({
+        idToken: parses_token.id_token,
+        audience: ID_CLIENT
+    })
+    
+    console.log({ticket: ticket, data: "ini ticket"}) //TODO: CHECK CONSOLE BAKCNED
 
-        // if(!ticket) {
-        //     log("ticket kosong")
-        //     res.status(401).json({data: "failed to verify User", status : 401})
-        //     return
-        // }
+    if(!ticket) {
+        res.status(401).json({data: "failed to verify User", status : 401})
+        return
+    }
+    
+    const role_default = "user"
+    const ticket_payload = await ticket.getPayload()
+    
+    console.log({ticket_payload: ticket_payload, data: "ini ticket_payload"}) //TODO: CHECK CONSOLE BAKCNED
 
-        // const accses_token_parses = parses_token.access_token
-        // log(accses_token_parses)
-        // if(!accses_token_parses) {
-        //     log("accses token kosong")
-        //     res.status(401).json({data: "anAuthorize accses token", status: 401})
-        //     return
-        // }
+        if(!URL_FRONTEND) {
+            res.status(404).json({data: "url frontend undefined"})
+            return
+        }
 
-        // const accses_token_sign = jwt.sign({token: accses_token_parses}, KEY_TOKEN_JWT, {
-        //     expiresIn: "5m"
-        // })
+        const user_login = new userOauth({
+           googleId : ticket_payload?.sub,
+           name : ticket_payload?.name, 
+           refreshToken : parses_token.refresh_token,
+           email: ticket_payload?.email,
+           avatar : ticket_payload?.picture,
+           role : role_default
+        })
 
-        // res.cookie("token_access", accses_token_sign, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: "none",
-        //     maxAge : 60 * 60 * 1000,
-        //     domain: "oauth-apis.koyeb.app"
-        // })
-
-        // const role_default = "user"
+        await user_login.save()
         
-        // const ticket_payload = await ticket.getPayload()
-        // const googleId = ticket_payload?.sub
+        res.status(200).json({
+            data: true,
+            user: user_login,
+            status: 200
+        })
+}
 
-        // if(!googleId) {
-        //     log("googleid kosong")
-        //     res.status(401).json({data: "ksong", satatus: 401})
-        //     return
-        // }
+export const checking_login_user = async (req: Request, res: Response): Promise<void> => {
+    const {token, token_access} = req.cookies
+    if(!token || !token_access){
+        res.status(401).json({data: "cookie token are undefined", status: 401})
+        return
+    }
+    if(!KEY_TOKEN_JWT){
+        res.status(404).json({data: "invalid secret key jwt", status: 404})
+        return
+    }
 
-        // const googleID_user =  await userOauth.findOne({googleId : googleId})
+    //* verify token
+    const verify = jwt.verify(token_access, KEY_TOKEN_JWT)
+    // const find_user_login = await userOauth.findOne() //TODO: FIND USER LOGIN MONGO
+    
+    console.log({
+        data: verify,
+        info: "data dari verify jwt"
+    })
 
-        // if(googleID_user) {
-        //     log("googleId_user find db ksoong")
-        //     res.status(202).json({data: "data sudah ada"})  
-        //     return
-        // }
+    try {
+        const refresh_token = crypto.randomBytes(32).toString("hex")
+        await redis.set("token", token, {ex: 3600})
+        await redis.set("refresh_token", refresh_token, {ex: 3600})
+        res.status(201).json({data: "succses send redis key try SET", status: 201})
+        return
+    }catch (error) {
+        if(error instanceof Error) {
+            res.status(401).json({data: error.message, status: 401})
+            return
+        }
+    }
 
-        // const user_login = new userOauth({
-        //    googleId : ticket_payload?.sub,
-        //    name : ticket_payload?.name, 
-        //    refreshToken : parses_token.refresh_token,
-        //    email: ticket_payload?.email,
-        //    avatar : ticket_payload?.picture,
-        //    role : role_default
-        // })
-
-        // await user_login.save()
-        
-        // res.status(200).json({
-        //     data: true,
-        //     user: user_login,
-        //     sub: ticket_payload.sub,
-        //     status: 200
-        // })
-        // log({
-        //     data: [
-        //         {
-        //             token: token,
-        //             signJwt: accses_token_sign,
-        //             ticket: ticket_payload
-        //         }
-        //     ]
-        // })
+    res.status(200).json({data: "mantap"})
 }
 
 export const ping = (req: Request, res: Response): void => {

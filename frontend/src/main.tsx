@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import Login from './pages/Login.pages'
 import Dashboard from './pages/Dashboard.pages'
+import Test from './pages/test'
 import MidlewereSecurity from './security/Midlewere.security'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
@@ -16,6 +17,10 @@ const Router = createBrowserRouter([
     element: <MidlewereSecurity>
       <Dashboard />
     </MidlewereSecurity>
+  },
+  {
+    path: "/test",
+    element: <Test />
   }
 ])
 
