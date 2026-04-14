@@ -10,6 +10,7 @@ import type { myCookie} from "../types/main.type.js"
 import { client } from "./auth/google.js"
 import {userOauth} from "../model/databse.model.js"
 import { redis } from "../service/redis/redis.js"
+import { handleError } from "../utils/asyncHandler.js"
 
 //* config
 dotenv.config()
@@ -24,8 +25,9 @@ const log = console.log
 //* service
 
 export const auth_google = async (req: Request, res: Response): Promise<void> => {
+        const error_message = "url is required"
         if(!url) {
-            res.status(404).json({data: "Cannot accses url", status: 404})
+            handleError(res, error_message, 400)
             return
         }
         res.status(201).json({data: url , status: 201})
@@ -35,34 +37,31 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
     const token_code = req.query.code as string
     
     if(!token_code || typeof token_code !== "string") {
-        res.status(401).json({data: "AnAuthorize token code", status: 401})
-        return
-    }
-    
-    if(!KEY_TOKEN_JWT) {
-        res.status(401).json({data: "AnAuthorize token", status: 401})
+        const error_message = "AnAuthorize token code"
+        handleError(res, error_message, 401)
         return
     }
     
     const payload: {token: string} = {
         token: token_code
     }
-    
     const token = jwt.sign(payload, KEY_TOKEN_JWT, {
         expiresIn: "5m"
     })
 
-    if(!token) {
-        res.status(404).json({data: "token invalid", status: 404})
-        return
-    }
-    
-    if(!URL_FRONTEND) { 
-        res.status(401).json({data: "unexpected type of url", status: 401})
+    if(!token || typeof token !== "string" || token.trim() === "") {
+        const error_message = "token code is undefined type string"
+        handleError(res, error_message, 404)
         return
     }
 
     const {tokens} = await client.getToken(token_code as string)
+
+    if(!tokens || typeof token !== "string") {
+        const error_message = "undefined user data"
+        handleError(res, error_message, 404)
+        return
+    }
 
     res.cookie("token", tokens, {
         httpOnly: true,
@@ -84,8 +83,9 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         res.status(401).json({data: "AnAuthorize", status : 401})
         return
     }
-
-    const parses_token = typeof token === 'string' ? JSON.parse(token) : token
+    
+    try {
+        const parses_token = typeof token === 'string' ? JSON.parse(token) : token
         
     //TODO: TAMPILKAN USER DATA YANG LOGIN
     const ticket = await client.verifyIdToken({
@@ -102,6 +102,10 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
     
     const role_default = "user"
     const ticket_payload = await ticket.getPayload()
+    const googleId = ticket_payload?.sub ? ticket_payload.sub : "failed to get data"
+    const find_sub = await userOauth.findOne({googleId: googleId})
+
+    
     
     console.log({ticket_payload: ticket_payload, data: "ini ticket_payload"}) //TODO: CHECK CONSOLE BAKCNED
 
@@ -120,12 +124,22 @@ export const checking = async (req: Request, res: Response): Promise<void> => {
         })
 
         await user_login.save()
-        
+
         res.status(200).json({
             data: true,
             user: user_login,
             status: 200
         })
+
+    }catch (error) {
+        if(error instanceof Error) {
+            res.status(500).json({
+                data: error.message,
+                info : "server error coba cek service auth",
+                status: 500
+            })
+        }
+    }
 }
 
 export const checking_login_user = async (req: Request, res: Response): Promise<void> => {
