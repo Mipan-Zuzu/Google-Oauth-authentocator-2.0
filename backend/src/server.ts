@@ -17,6 +17,25 @@ const port =  process.env.PORT || 3000
 const FRONTEND_URL = process.env.FRONTEND_URL
 const PASSWORD_DB = process.env.DB_PASSWORD
 
+const REQUIRED_ENV = [
+  "AUTH_GOOGLE_ID_CLIENT",
+  "AUTH_GOOGLE_CLIENT_SECRET",
+  "KEY_TOKEN_JWT",
+  "AUTH_GOOGLE_REDIRECT",
+  "DASHBOARD_URL",
+  "FRONTEND_URL",
+  "DB_USERNAME",
+  "DB_PASSWORD",
+  "UPSTASH_REDIS_REST_URL",
+  "UPSTASH_REDIS_REST_TOKEN"
+]
+
+REQUIRED_ENV.forEach((key) => {
+  if(process.env[key]) {
+    throw new Error(`Missing environtment variabel: ${key}`)
+  }
+})
+
 if(!FRONTEND_URL) {
   throw new Error("cannot find frontend url")
 }
