@@ -29,8 +29,7 @@ routes.get("/auth/checking/session", async (req: Request, res: Response): Promis
 
 routes.get("/auth/user", async(req: Request, res: Response): Promise<void> => {
     const user_find = await userOauth.find()
-    console.log(user_find)
-    if(!user_find) {
+    if(!user_find || user_find.length < 1) {
         res.status(400).json({
             status: 404,
             data: "cannot find user"
