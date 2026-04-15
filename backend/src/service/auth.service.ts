@@ -35,6 +35,7 @@ export const auth_google = async (req: Request, res: Response): Promise<void> =>
 
 export const auth_google_callback = async (req: Request, res: Response): Promise<void> => {
     const token_code = req.query.code as string
+    const role_default = process.env.DB_DEFAULT_USER
     
     if(!token_code || typeof token_code !== "string") {
         const error_message = "AnAuthorize token code"
@@ -57,11 +58,38 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 
     const {tokens} = await client.getToken(token_code as string)
 
-    if(!tokens || typeof token !== "string") {
-        const error_message = "undefined user data"
+    if(!tokens || !tokens.id_token) {
+        const error_message = "undefined user data "
         handleError(res, error_message, 404)
         return
     }
+
+    const ticket = await client.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: ID_CLIENT
+    })
+
+        const ticket_payload = await ticket.getPayload()
+        const googleId = ticket_payload?.sub ? ticket_payload.sub : "failed to get data"
+        const find_sub = await userOauth.findOne({googleId: googleId})
+        const parses_token = typeof tokens === 'string' ? JSON.parse(tokens) : tokens
+
+        if(find_sub == null || !find_sub) {
+        const user_login = new userOauth({
+           googleId : ticket_payload?.sub,
+           name : ticket_payload?.name, 
+           refreshToken : parses_token.refresh_token,
+           email: ticket_payload?.email,
+           avatar : ticket_payload?.picture,
+           role : role_default
+        })
+        console.log({
+            parses_token : parses_token,
+            user_login : user_login,
+            info: "kumpulan data parses_token dan user login"
+        })
+    }
+
 
     res.cookie("token", tokens, {
         httpOnly: true,
@@ -73,94 +101,24 @@ export const auth_google_callback = async (req: Request, res: Response): Promise
 }
 
 export const checking = async (req: Request, res: Response): Promise<void> => {
-    const {token} = req.cookies as myCookie
     
-    if(!token) {
-        res.status(401).json({data: "Cookie token not found", status: 401})
-        return
-    }
-    if(!KEY_TOKEN_JWT) {
-        res.status(401).json({data: "AnAuthorize", status : 401})
-        return
-    }
-    
-    try {
-        const parses_token = typeof token === 'string' ? JSON.parse(token) : token
-        
-    //TODO: TAMPILKAN USER DATA YANG LOGIN
-    const ticket = await client.verifyIdToken({
-        idToken: parses_token.id_token,
-        audience: ID_CLIENT
-    })
-    
-    console.log({ticket: ticket, data: "ini ticket"}) //TODO: CHECK CONSOLE BAKCNED
-
-    if(!ticket) {
-        res.status(401).json({data: "failed to verify User", status : 401})
-        return
-    }
-    
-    const role_default = "user"
-    const ticket_payload = await ticket.getPayload()
-    const googleId = ticket_payload?.sub ? ticket_payload.sub : "failed to get data"
-    const find_sub = await userOauth.findOne({googleId: googleId})
-
-    
-    
-    console.log({ticket_payload: ticket_payload, data: "ini ticket_payload"}) //TODO: CHECK CONSOLE BAKCNED
-
-        if(!URL_FRONTEND) {
-            res.status(404).json({data: "url frontend undefined"})
-            return
-        }
-
-        const user_login = new userOauth({
-           googleId : ticket_payload?.sub,
-           name : ticket_payload?.name, 
-           refreshToken : parses_token.refresh_token,
-           email: ticket_payload?.email,
-           avatar : ticket_payload?.picture,
-           role : role_default
-        })
-
-        await user_login.save()
-
-        res.status(200).json({
-            data: true,
-            user: user_login,
-            status: 200
-        })
-
-    }catch (error) {
-        if(error instanceof Error) {
-            res.status(500).json({
-                data: error.message,
-                info : "server error coba cek service auth",
-                status: 500
-            })
-        }
-    }
 }
 
 export const checking_login_user = async (req: Request, res: Response): Promise<void> => {
-    const {token, token_access} = req.cookies
-    if(!token || !token_access){
-        res.status(401).json({data: "cookie token are undefined", status: 401})
-        return
-    }
-    if(!KEY_TOKEN_JWT){
-        res.status(404).json({data: "invalid secret key jwt", status: 404})
+    const {token} = req.cookies
+    if(!token || typeof token !== "string"){
+        const error_message = "cookie token are undefined"
+        handleError(res, error_message, 404)
         return
     }
 
     //* verify token
-    const verify = jwt.verify(token_access, KEY_TOKEN_JWT)
-    // const find_user_login = await userOauth.findOne() //TODO: FIND USER LOGIN MONGO
-    
-    console.log({
-        data: verify,
-        info: "data dari verify jwt"
-    })
+    // const verify = jwt.verify(token_access, KEY_TOKEN_JWT)
+    const find_user_login = await userOauth.findOne() //TODO: FIND USER LOGIN MONGO
+    // console.log({
+    //     data : `verify jwt data ${verify}`,
+    //     status: 200
+    // })
 
     try {
         const refresh_token = crypto.randomBytes(32).toString("hex")

@@ -27,11 +27,12 @@ const REQUIRED_ENV = [
   "DB_USERNAME",
   "DB_PASSWORD",
   "UPSTASH_REDIS_REST_URL",
-  "UPSTASH_REDIS_REST_TOKEN"
+  "UPSTASH_REDIS_REST_TOKEN",
+  "DB_DEFAULT_USER"
 ]
 
 REQUIRED_ENV.forEach((key) => {
-  if(process.env[key]) {
+  if(!process.env[key]) {
     throw new Error(`Missing environtment variabel: ${key}`)
   }
 })
