@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import Login from './pages/Login.pages'
 import Dashboard from './pages/Dashboard.pages'
-import Test from './pages/test'
+import Test from './pages/Test'
 import MidlewereSecurity from './security/Midlewere.security'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
