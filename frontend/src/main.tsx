@@ -6,11 +6,13 @@ import Dashboard from './pages/Dashboard.pages'
 import Test from './pages/Test'
 import MidlewereSecurity from './security/Midlewere.security'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import Error from './pages/error.pages'
 
 const Router = createBrowserRouter([
   {
     path: "/",
-    element: <Login />
+    element: <Login />,
+    errorElement: <Error />
   },
   {
     path: "/dashboard",
