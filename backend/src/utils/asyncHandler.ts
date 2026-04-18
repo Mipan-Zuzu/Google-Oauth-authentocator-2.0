@@ -9,7 +9,7 @@ export const throwError = <T>(value: T, message: string) => {
     if(!value) throw new Error(message)
 }
 
-export const handleError = (
+export const handleResponse = (
     res: Response,
     error: unknown,
     status: number = 500
@@ -17,7 +17,7 @@ export const handleError = (
     console.error(error)
 
     const message = 
-    error instanceof Error ? error.message : "internal server error"
+    error ? error : "internal server error"
     
     return res.status(status).json({
         data : message,

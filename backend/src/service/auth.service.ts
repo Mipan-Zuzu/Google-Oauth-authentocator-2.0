@@ -8,7 +8,7 @@ import { url } from "./auth/google.js"
 import { client } from "./auth/google.js"
 import {userOauth} from "../model/databse.model.js"
 import { redis } from "../service/redis/redis.js"
-import { handleError } from "../utils/asyncHandler.js"
+import { handleResponse } from "../utils/asyncHandler.js"
 
 //* config
 dotenv.config()
@@ -22,27 +22,28 @@ const URL_FRONTEND = process.env.FRONTEND_URL
 export const auth_google = async (req: Request, res: Response): Promise<void> => {
         const error_message = "url is required"
         if(!url) {
-            handleError(res, error_message, 400)
+            handleResponse(res, error_message, 400)
             return
         }
         res.status(201).json({data: url , status: 201})
 }
 
+//TODO: ini untuk callback dari oauth google
 export const auth_google_callback = async (req: Request, res: Response): Promise<void> => {
     const token_code = req.query.code as string
     const role_default = process.env.DB_DEFAULT_USER
     
     if(!token_code || typeof token_code !== "string") {
-        const error_message = "AnAuthorize token code"
-        handleError(res, error_message, 401)
+        const error_message = "invalid token code status code 401"
+        handleResponse(res, error_message, 401)
         return
     }
 
     const {tokens} = await client.getToken(token_code as string)
 
     if(!tokens || !tokens.id_token) {
-        const error_message = "undefined user data "
-        handleError(res, error_message, 404)
+        const error_message = "invalid user data status code 401"
+        handleResponse(res, error_message, 404)
         return
     }
 // Todod : using try Catch errror
@@ -58,11 +59,9 @@ try {
     const ticket_payload = await ticket.getPayload()
 
     const googleId = ticket_payload?.sub
-    if(!googleId || googleId.length <= 1) {
-        res.status(404).json({
-            data : "googleid undefined null data cannnot find",
-            status : 404
-        })
+    if(!googleId) {
+        const error_message = "googleid invalid google subject status code 401"
+        handleResponse(res, error_message, 401)
         return
     }
     //  Todo: find client login. data profile
@@ -108,74 +107,40 @@ try {
         maxAge: 60 * 60 * 1000,
     })
 
-    await redis.expire(`session:sid_${sid}`, 3600)
-    res.redirect(URL_DASHBOARD!)
-
+    res.redirect(`${URL_DASHBOARD}/${ticket_payload.sub}`)
+    return
 } catch (error) {
     if(error instanceof Error) {
-        res.redirect(URL_FRONTEND!)
+        handleResponse(res, error.message, 500)
         return
     }
 }
 }
 
+//TODO: login midlewere fe
 export const checking = async (req: Request, res: Response): Promise<void> => {
     const {sid} = req.cookies
     try{
-
         if(!sid) {
-            res.status(401).json({
-                data : "name token expired"
-            })
+            const message = "invalid or expired session id status code 401 unauthorize"
+            handleResponse(res, message, 401)
             return
         }
-
         const get = await redis.get(sid)
-
-    }catch (error) {
-        if(error instanceof Error) {
-            res.status(500).json({
-                data : error.message,
-                status : 500
-            })
+        if(!get || typeof get !== "object") {
+            const message = "invalid data session in state memory status code 401"
+            handleResponse(res, message, 401)
+            return
         }
-    }
-}
-
-
-//TODO: ini untuk midlewre
-export const checking_login_user = async (req: Request, res: Response): Promise<void> => {
-    const {sid} = req.cookies
-
-    if(!sid || typeof sid !== "string"){
-        const error_message = "cookie token are undefined"
-        handleError(res, error_message, 404)
-        return
-    }
-
-    
-    //TODO: tinggal buat setiap req valid, buat refresh token supaya nambah masa berlaku nya 
-    //TODO: lakukan validasi supaya login benar benar orang itu dengan redis nya cek bener atau borogan
-    //TODO: selesai tambahkan sedikit err handle dan rapikan code selesai sudah capter ini
-
-    try {
-        const refresh_token = crypto.randomBytes(32).toString("hex")
-        await redis.set("refresh_token", refresh_token, {ex: 3600})
-        res.status(201).json({data: "succses send redis key try SET", status: 201})
+        const message = "succses checking session in state memory status code 200"
+        handleResponse(res, message, 200)
         return
     }catch (error) {
         if(error instanceof Error) {
-            res.status(401).json({data: error.message, status: 401})
+            handleResponse(res, error.message, 500)
             return
         }
     }
-
-    const get = await redis.get(sid.toString())
-    res.status(200).json({
-        data : get,
-        info : sid,
-        status : 200
-    })
 }
 
 export const ping = (req: Request, res: Response): void => {
