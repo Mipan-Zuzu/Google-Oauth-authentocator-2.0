@@ -4,21 +4,23 @@ import './index.css'
 import Login from './pages/Login.pages'
 import Dashboard from './pages/Dashboard.pages'
 import Test from './pages/Test'
-import MidlewereSecurity from './security/Midlewere.security'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Error from './pages/error.pages'
+import MidlewereLogin from './security/MidlewereLoginPages.security'
 
 const Router = createBrowserRouter([
   {
     path: "/",
-    element: <Login />,
+    element: <MidlewereLogin>
+      l<Login/>
+    </MidlewereLogin>,
     errorElement: <Error />
   },
   {
-    path: "/dashboard",
-    element: <MidlewereSecurity>
+    path: "/dashboard/user/:id",
+    element: <MidlewereLogin>
       <Dashboard />
-    </MidlewereSecurity>
+    </MidlewereLogin>
   },
   {
     path: "/test",

@@ -1,16 +1,20 @@
 //* third party
 import expres, { request, response } from "express"
 import type {NextFunction, Request, Response, Router} from "express"
+import { redis } from "../service/redis/redis.js"
 
 //* service
 import { asyncHanlder } from "../utils/asyncHandler.js"
-import { auth_google, auth_google_callback, checking, ping, checking_login_user } from "../service/auth.service.js"
+import { auth_google, auth_google_callback, checking, ping} from "../service/auth.service.js"
 import { userOauth } from "../model/databse.model.js"
 //* midlewere
 import {
     midlewere_auth_google,
     midlewere_google_login 
 } from "../security/midlewere.security.js"
+
+//* type module
+import {handleResponse} from "../utils/asyncHandler.js"
 
 //* config
 export const routes: Router = expres.Router()
@@ -22,23 +26,84 @@ routes.get("/auth/google/callback",
     midlewere_google_login,
     asyncHanlder(async(req: Request, res: Response): Promise<void> => auth_google_callback(req, res)))
 
-routes.post("/auth/checking/token", 
+routes.get("/auth/checking/token", 
    async (req: Request, res: Response): Promise<void> => checking(req, res))
+   
+routes.get("/auth/user/:id", async(req: Request, res: Response): Promise<void> => {
+    const {sid} = req.cookies
+    const {id} = req.params
 
-routes.get("/auth/checking/session", async (req: Request, res: Response): Promise<void> => checking_login_user(req, res))
-
-routes.get("/auth/user", async(req: Request, res: Response): Promise<void> => {
-    const user_find = await userOauth.find()
-    if(!user_find || user_find.length < 1) {
-        res.status(400).json({
-            status: 404,
-            data: "cannot find user"
-        })
+    if(!sid) {
+        const message = "invalid session id anauthorize with status 401"
+        handleResponse(res, message, 401)
+        return
     }
-    res.status(200).json({
-        status: 200,
-        data: user_find
-    })
+
+    const get_redis = await redis.get(sid) as string || null
+
+    if(!get_redis) {
+        const message = "invalid data session payload anauthorize with status 401"
+        handleResponse(res, message, 401)
+        return
+    }
+
+    try {
+        const parsed = JSON.parse(get_redis)
+        const googleSub = parsed.googleSub
+        const find_user = await userOauth.findOne({googleId : googleSub}) 
+
+        if(!find_user) {
+            const message = "invalid data , database cannot find spesific data status code 404"
+            handleResponse(res, message, 404)
+            return
+        }
+
+        const user_find_dat = find_user.googleId
+
+        if(user_find_dat !== id) {
+            const message = "invalid google id user status 401"
+            handleResponse(res, message, 401)
+            return
+        }
+        res.status(200).json(find_user)
+    }catch (error) {
+        if(error instanceof Error) {
+            handleResponse(res, error.message, 500)
+        }
+    }
+})
+
+routes.get("/auth/sub", async (req: Request, res: Response): Promise<void> => {
+    const {sid} = req.cookies
+        if(!sid) {
+            const message = "invalid session id cookie unauthorize with status 401"
+            handleResponse(res, message, 401)
+            return
+        }
+
+        type data = {
+            googleSub : string
+        }
+
+        const data = await redis.get(sid) as data
+
+        if(!data) {
+            const message = "invalid data res redis status code 401"
+            handleResponse(res, message, 401)
+            return
+        }
+
+    try {
+        const googleSub = data.googleSub
+        handleResponse(res, googleSub, 200)
+        return
+
+    } catch (error) {
+        if(error instanceof Error) {
+            handleResponse(res, error.message, 500)
+            return
+        }
+    }
 })
 
 //* testing routes 
