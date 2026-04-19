@@ -105,7 +105,6 @@ try {
         httpOnly: true,
         sameSite: "none",
         secure: true,
-        domain: ".mipandev.my.id",
         maxAge: 60 * 60 * 1000,
     })
 
@@ -122,7 +121,7 @@ try {
 //TODO: login midlewere fe
 export const checking = async (req: Request, res: Response): Promise<void> => {
     const {sid} = req.cookies
-    console.log(`ini sid gweh dari cookie`)
+    console.log(`ini ${sid} gweh dari cookie`)
     try{
         if(!sid) {
             const message = "invalid or expired session id status code 401 unauthorize"
