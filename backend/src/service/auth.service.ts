@@ -103,7 +103,9 @@ try {
     
     res.cookie("sid", `session:sid_${sid}`, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
+        secure: true,
+        domain: ".mipandev.my.id",
         maxAge: 60 * 60 * 1000,
     })
 
