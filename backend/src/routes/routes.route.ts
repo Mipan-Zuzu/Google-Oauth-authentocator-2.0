@@ -39,17 +39,19 @@ routes.get("/auth/user/:id", async(req: Request, res: Response): Promise<void> =
         return
     }
 
-    const get_redis = await redis.get(sid) as string || null
+    type data = {
+        googleSub: string
+    }
 
-    if(!get_redis) {
+    const {googleSub} = await redis.get(sid) as data
+
+    if(!googleSub) {
         const message = "invalid data session payload anauthorize with status 401"
         handleResponse(res, message, 401)
         return
     }
 
     try {
-        const parsed = JSON.parse(get_redis)
-        const googleSub = parsed.googleSub
         const find_user = await userOauth.findOne({googleId : googleSub}) 
 
         if(!find_user) {
@@ -65,7 +67,9 @@ routes.get("/auth/user/:id", async(req: Request, res: Response): Promise<void> =
             handleResponse(res, message, 401)
             return
         }
-        res.status(200).json(find_user)
+
+        handleResponse(res, find_user, 200)
+        return
     }catch (error) {
         if(error instanceof Error) {
             handleResponse(res, error.message, 500)

@@ -37,6 +37,10 @@ const GoogleLoginComponents = () => {
   fetchData();
 }, [URL_AUTH_GOOGLE]);
 
+if(!url) {
+  return <p>Loading...</p>
+}
+
   return (
     <div className="px-15 shadow-2xl p-3 rounded-lg bg-white">
       <div className="flex gap-4">
